@@ -141,6 +141,34 @@ app.delete('/event/like', (req, res) => {
     changeLikes(req, res, req.body.id, false);
 });
 
+
+
+// Likes an event - in a real solution, this would update a cloud datastore.
+// Currently this simply increments the like counter in the mock array in memory
+// this will produce unexpected behavior in a stateless kubernetes cluster. 
+app.post('/event/like', (req, res) => {
+    console.log (req.body.id);
+    var objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.id));
+    var likes = mockEvents.events[objIndex].likes;
+    mockEvents.events[objIndex].likes = ++likes;
+    res.json(mockEvents);
+});
+
+// unlikes an event - in a real solution, this would update a cloud datastore.
+// Currently this simply decrements the like counter in the mock array in memory
+// this will produce unexpected behavior in a stateless kubernetes cluster. 
+app.delete('/event/like', (req, res) => {
+
+    console.log (req.body.id);
+    var objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.id));
+    var likes = mockEvents.events[objIndex].likes;
+    if (likes > 0) {
+        mockEvents.events[objIndex].likes = --likes;
+    }
+    res.json(mockEvents);
+});
+
+
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: err.message });
