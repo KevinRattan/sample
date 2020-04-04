@@ -114,7 +114,8 @@ app.post('/event/like',
         // using an environment variable. Here, the variable is passed 
         // to npm start inside package.json:
         //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
-        request.post(  // first argument: url + data + formats
+        // changed to a put now that real data is being updated
+        request.put(  // first argument: url + data + formats
             {
                 url: SERVER + '/event/like',  // the microservice end point for liking an event
                 body: req.body,  // content of the form
