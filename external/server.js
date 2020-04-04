@@ -91,19 +91,10 @@ app.post('/event',
                 console.log('error:', error); // Print the error if one occurred
                 console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
                 console.log(body); // print the return from the server microservice
-                res.render('home',
-                    {
-                        layout: 'default',  //the outer html page
-                        template: 'index-template', // the partial view inserted into 
-                        // {{body}} in the layout - the code
-                        // in here inserts values from the JSON
-                        // received from the server
-                        events: body.events
-                    }); // pass the data from the server to the template
+                res.redirect("/"); // redirect to the home page
             });
 
     });
-
 
 // create other get and post methods here - version, login,  etc
 
