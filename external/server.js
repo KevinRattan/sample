@@ -76,9 +76,7 @@ app.get('/', (req, res) => {
                     }); // pass the data from the server to the template
             }
         });
-
 });
-
 
 // defines a route that receives the post request to /event
 app.post('/event',
@@ -99,13 +97,8 @@ app.post('/event',
                 },
                 json: true // response from server will be json format
             },
-            (error, response, body) => {  // third argument: function with three args,
-                // runs when server response received
-                // body hold the return from the server
-                console.log('error:', error); // Print the error if one occurred
-                console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-                console.log(body); // print the return from the server microservice
-                res.redirect("/"); // redirect to the home page
+            () => {  
+                res.redirect("/"); // redirect to the home page on successful response
             });
 
     });
@@ -130,21 +123,8 @@ app.post('/event/like',
                 },
                 json: true // response from backend will be json format
             },
-            (error, response, body) => {  // third argument: function with three args,
-                // runs when backend response received
-                // body hold the return from the backend
-                console.log('error:', error); // Print the error if one occurred
-                console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-                console.log(body); // print the return from the backend microservice
-                res.render('home',
-                    {
-                        layout: 'default',  //the outer html page
-                        template: 'index-template', // the partial view inserted into 
-                        // {{body}} in the layout - the code
-                        // in here inserts values from the JSON
-                        // received from the server
-                        events: body.events
-                    }); // pass the data from the server to the template
+            () => {  
+                res.redirect("/"); // redirect to the home page on successful response
             });
 
     });
@@ -169,21 +149,8 @@ app.post('/event/unlike',
                 },
                 json: true // response from backend will be json format
             },
-            (error, response, body) => {  // third argument: function with three args,
-                // runs when backend response received
-                // body hold the return from the backend
-                console.log('error:', error); // Print the error if one occurred
-                console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-                console.log(body); // print the return from the backend microservice
-                res.render('home',
-                    {
-                        layout: 'default',  //the outer html page
-                        template: 'index-template', // the partial view inserted into 
-                        // {{body}} in the layout - the code
-                        // in here inserts values from the JSON
-                        // received from the server
-                        events: body.events
-                    }); // pass the data from the server to the template
+            () => {  
+                res.redirect("/"); // redirect to the home page on successful response
             });
 
     });    
