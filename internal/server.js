@@ -142,32 +142,44 @@ app.delete('/event/like', (req, res) => {
 });
 
 
+// function used by both like and unlike. If increment = true, a like is added.
+// If increment is false, a like is removed.
+function changeLikes(req, res, id, increment) {
+    // return the existing objct
+    firestore.collection("Events").doc(id).get()
+        .then((snapshot) => {
+            const el = snapshot.data();
+            // if you have elements in firestore with no likes property
+            if (!el.likes) {
+                el.likes = 0;
+            }
+            // increment the likes
+            if (increment) {
+                el.likes++;
+            }
+            else {
+                el.likes--;
+            }
+            // do the update
+            firestore.collection("Events")
+                .doc(id).update(el).then((ret) => {
+                    // return events using shared method that adds __id
+                    getEvents(req, res);
+                });
+        })
+        .catch(err => { console.log(err) });
+}
 
-// Likes an event - in a real solution, this would update a cloud datastore.
-// Currently this simply increments the like counter in the mock array in memory
-// this will produce unexpected behavior in a stateless kubernetes cluster. 
-app.post('/event/like', (req, res) => {
-    console.log (req.body.id);
-    var objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.id));
-    var likes = mockEvents.events[objIndex].likes;
-    mockEvents.events[objIndex].likes = ++likes;
-    res.json(mockEvents);
+// put because this is an update. Passes through to shared method.
+app.put('/event/like', (req, res) => {
+    changeLikes(req, res, req.body.id, true);
 });
 
-// unlikes an event - in a real solution, this would update a cloud datastore.
-// Currently this simply decrements the like counter in the mock array in memory
-// this will produce unexpected behavior in a stateless kubernetes cluster. 
+// Passes through to shared method.
+// Delete distinguishes this route from put above
 app.delete('/event/like', (req, res) => {
-
-    console.log (req.body.id);
-    var objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.id));
-    var likes = mockEvents.events[objIndex].likes;
-    if (likes > 0) {
-        mockEvents.events[objIndex].likes = --likes;
-    }
-    res.json(mockEvents);
+    changeLikes(req, res, req.body.id, false);
 });
-
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
