@@ -1,6 +1,7 @@
 var chai = require('chai');
 const request = require('supertest');
 const app = require('../server');
+const firestore = require('./mock-firestore');
 
 describe('GET /', function() {
     it('responds with json', function(done) {
