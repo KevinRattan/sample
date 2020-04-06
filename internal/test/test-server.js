@@ -60,7 +60,6 @@ describe('GET /events', function () {
         chai.expect(JSON.parse(res.text)).to.have.property('events');
         return done();
       });
-
   });
 });
 
