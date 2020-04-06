@@ -14,16 +14,16 @@ const db = new Firestore(
 // from a cloud data store
 const mockEvents = {
     events: [
-        { title: 'an event', id: 1, description: 'something really cool', location: 'Joes pizza', likes: 0 },
-        { title: 'another event', id: 2, description: 'something even cooler', location: 'Johns pizza', likes: 0 }
+        { title: 'a mock event', id: 1, description: 'something really cool', location: 'Joes pizza', likes: 0 },
+        { title: 'another mock event', id: 2, description: 'something even cooler', location: 'Johns pizza', likes: 0 }
     ]
 };
 
 
 // responsible for retrieving events from firestore and adding 
 // firestore's generated id to the returned object
-function getEvents(req, res, firestore = db) {
-    firestore.collection("Events").get()
+async function getEvents(firestore = db) {
+  return firestore.collection("Events").get()
         .then((snapshot) => {
             if (!snapshot.empty) {
                 const ret = { events: [] };
@@ -35,23 +35,21 @@ function getEvents(req, res, firestore = db) {
                     //add object to array
                     ret.events.push(el);
                 }, this);
-                console.log(ret);
-                res.json(ret);
-            } else {
-                // if no data has yet been added to firestore, return mock data
-                res.json(mockEvents);
-            }
+                return ret;
+            } 
+            // if no data has yet been added to firestore, return mock data
+            return mockEvents;
         })
         .catch((err) => {
             console.error('Error getting events', err);
-            res.json(mockEvents);
+            return mockEvents;
         });
 };
 
 
 // This has been modified to insert into firestore, and then call 
 // the shared getEvents method.
-function addEvent(req, res, firestore = db) {
+async function addEvent(req, firestore = db) {
     // create a new object from the json data. The id property
     // has been removed because it is no longer required.
     // Firestore generates its own unique ids
@@ -61,18 +59,18 @@ function addEvent(req, res, firestore = db) {
         location: req.body.location,
         likes: 0
     }
-    firestore.collection("Events").add(ev).then(ret => {
+    return firestore.collection("Events").add(ev).then(ret => {
         // return events using shared method that adds __id
-        getEvents(req, res);
+        return getEvents(firestore);
     });
 };
 
 
 // function used by both like and unlike. If increment = true, a like is added.
 // If increment is false, a like is removed.
-function changeLikes(req, res, id, increment, firestore = db) {
+async function changeLikes(id, increment, firestore) {
     // return the existing objct
-    firestore.collection("Events").doc(id).get()
+   return firestore.collection("Events").doc(id).get()
         .then((snapshot) => {
             const el = snapshot.data();
             // if you have elements in firestore with no likes property
@@ -83,37 +81,37 @@ function changeLikes(req, res, id, increment, firestore = db) {
             if (increment) {
                 el.likes++;
             }
-            else {
+            else if(el.likes > 0) {
                 el.likes--;
             }
             // do the update
-            firestore.collection("Events")
+            return firestore.collection("Events")
                 .doc(id).update(el).then((ret) => {
                     // return events using shared method that adds __id
-                    getEvents(req, res);
+                    return getEvents(firestore);
                 });
         })
         .catch(err => { console.log(err) });
 }
 
-// put because this is an update. Passes through to shared method.
-function addLike(req, res, firestore = db) {
-    changeLikes(req, res, req.body.id, true);
+async function addLike(id, firestore = db) {
+    console.log("adding like to = " + id);
+    return changeLikes(id, true, firestore);
 };
 
-// Passes through to shared method.
-// Delete distinguishes this route from put above
-function deleteLike(req, res, firestore = db) {
-    changeLikes(req, res, req.body.id, false);
+async function removeLike(id, firestore = db) {
+    console.log("removing like from = " + id);
+    return changeLikes(id, false, firestore);
 };
+
 
 const eventRepository = function () {
 
     return {
         getEvents: getEvents,
         addEvent: addEvent,
-        deleteLike: deleteLike,
-        addLike: addLike
+        addLike: addLike,
+        removeLike: removeLike
     };
 }();
 

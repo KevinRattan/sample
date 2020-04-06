@@ -31,27 +31,37 @@ app.get('/version', (req, res) => {
 // this has been modifed to call the shared getEvents method that
 // returns data from firestore
 app.get('/events', (req, res) => {
-    db.getEvents(req, res);
+    db.getEvents()
+    .then((data) => {
+        console.log(data);
+        res.json(data);
+    });
 });
 
 // This has been modified to insert into firestore, and then call 
 // the shared getEvents method.
 app.post('/event', (req, res) => {
-    // create a new object from the json data. The id property
-    // has been removed because it is no longer required.
-    // Firestore generates its own unique ids
-   db.addEvent(req,res);
+   db.addEvent(req)
+   .then((data) => {
+    console.log(data);
+    res.json(data);
+});
 });
 
 // put because this is an update. Passes through to shared method.
 app.put('/event/like', (req, res) => {
-    db.addLike(req, res, req.body.id, true);
+   db.addLike(req.body.id)
+   .then((data) => {
+    console.log(data);
+    res.json(data);
+});
 });
 
 // Passes through to shared method.
 // Delete distinguishes this route from put above
 app.delete('/event/like', (req, res) => {
-    db.deleteLike(req, res, req.body.id, false);
+   db.removeLike(req.body.id)
+   .then((data) => res.json(data));
 });
 
 
