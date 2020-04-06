@@ -1,10 +1,12 @@
 var chai = require('chai');
 var repo = require('../repository');
 var db = require('./mock-firestore');
-const sinon = require('sinon');
 
 
 describe('Testing Get Events', function () {
+    afterEach(function () {
+        db.snapshot.empty = false;
+    });
     it('should return events  ', function () {
         const request = [];
         repo.getEvents(db).then(
@@ -13,29 +15,33 @@ describe('Testing Get Events', function () {
             }
         )
     });
+    it('should return mock events when no data yet in firestore ', function () {
+        db.snapshot.empty = true;
+        repo.getEvents(db).then(
+            (data) => {
+                chai.expect(data.events[0].title).to.equal('a mock event');
+            }
+        )
+    });
+    it('should return mock events when errors using firestore ', function () {
+        const firestore = {
+            collection: function (arg) {
+                return {
+                    get: function () {
+                       return Promise.resolve({});  //should error on foreach
+                    }
+                }
+            }
+            
+        }
+        repo.getEvents(firestore).then(
+            (data) => {
+                chai.expect(data.events[0].title).to.equal('a mock event');
+            }
+        )
+    });
 });
 
-// describe('Testing Get Events Returns Mock When No data', function () {
-//     it('should return mock events  ', function () {
-//         const request = [];
-//         const firestore =
-//         {
-//             collection: function (arg) {
-//                 return {
-//                     get: function () {
-//                         return Promise.resolve({ empty: false});
-//                     }
-//                 }
-//             }
-//         }
-//         repo.getEvents(firestore).then(
-//             (data) => {
-//                 console.log(data);
-//                 chai.expect(data.events[0].title).to.equal('a mock event');
-//             }
-//         )
-//     });
-// });
 
 describe('Testing Add Event', function () {
     it('should  add new item to events ', function () {

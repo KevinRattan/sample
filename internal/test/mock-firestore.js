@@ -54,6 +54,7 @@ const collection = function (arg) {
 
 const Firestore = function () {
     var entity = {};
+    entity.snapshot = snapshot;
     entity.collection = collection;
     return entity;
 
