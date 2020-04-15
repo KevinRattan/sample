@@ -33,6 +33,31 @@ describe('GET /', function () {
 
 
   });
+
+
+  it('should display page when the backend is down', function (done) {
+    //specify the url to be intercepted
+    nock("http://localhost:8082")
+      //define the method to be intercepted
+      .get('/events')
+      //respond with an error
+      .replyWithError("Error");
+
+    request(app)
+      .get('/')
+      .expect('Content-Type', /html/)
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        chai.assert.isTrue(res.text.includes("Error"));
+        return done();
+      });
+
+
+  });
+
 });
 
 
@@ -56,13 +81,12 @@ describe('POST /event', function () {
 
     request(app)
       .post('/event')
-      .expect('Content-Type', /html/)
-      .expect(200)
+      .expect(302)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-        chai.assert.isTrue(res.text.includes("even cooler test"));
+        chai.assert.isTrue(res.text.includes("Redirecting"));
         return done();
       });
 
