@@ -64,44 +64,20 @@ app.delete('/event/like', (req, res) => {
    .then((data) => res.json(data));
 });
 
-
-// function used by both like and unlike. If increment = true, a like is added.
-// If increment is false, a like is removed.
-function changeLikes(req, res, id, increment) {
-    // return the existing objct
-    firestore.collection("Events").doc(id).get()
-        .then((snapshot) => {
-            const el = snapshot.data();
-            // if you have elements in firestore with no likes property
-            if (!el.likes) {
-                el.likes = 0;
-            }
-            // increment the likes
-            if (increment) {
-                el.likes++;
-            }
-            else {
-                el.likes--;
-            }
-            // do the update
-            firestore.collection("Events")
-                .doc(id).update(el).then((ret) => {
-                    // return events using shared method that adds __id
-                    getEvents(req, res);
-                });
-        })
-        .catch(err => { console.log(err) });
-}
-
 // put because this is an update. Passes through to shared method.
 app.put('/event/like', (req, res) => {
-    changeLikes(req, res, req.body.id, true);
+   db.addLike(req.body.id)
+   .then((data) => {
+    console.log(data);
+    res.json(data);
+});
 });
 
 // Passes through to shared method.
 // Delete distinguishes this route from put above
 app.delete('/event/like', (req, res) => {
-    changeLikes(req, res, req.body.id, false);
+   db.removeLike(req.body.id)
+   .then((data) => res.json(data));
 });
 
 app.use((err, req, res, next) => {
