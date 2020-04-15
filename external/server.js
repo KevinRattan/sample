@@ -116,7 +116,7 @@ app.post('/event/like',
         //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
         request.post(  // first argument: url + data + formats
             {
-                url: process.env.SERVER + '/event/like',  // the microservice end point for liking an event
+                url: SERVER + '/event/like',  // the microservice end point for liking an event
                 body: req.body,  // content of the form
                 headers: { // uploading json
                     "Content-Type": "application/json"
@@ -142,7 +142,7 @@ app.post('/event/unlike',
         //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
         request.delete(  // first argument: url + data + formats
             {
-                url: process.env.SERVER + '/event/like',  // the microservice end point for liking an event
+                url: SERVER + '/event/like',  // the microservice end point for liking an event
                 body: req.body,  // content of the form
                 headers: { // uploading json
                     "Content-Type": "application/json"

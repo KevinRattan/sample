@@ -115,13 +115,12 @@ describe('POST /event/like', function () {
 
       request(app)
       .post('/event/like')
-      .expect('Content-Type', /html/)
-      .expect(200)
+      .expect(302)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-        chai.assert.isTrue(res.text.includes("Likes: 1"));
+        chai.assert.isTrue(res.text.includes("Redirecting"));
         return done();
       });
 
@@ -148,13 +147,12 @@ describe('POST /event/unlike', function () {
 
       request(app)
       .post('/event/unlike')
-      .expect('Content-Type', /html/)
-      .expect(200)
+      .expect(302)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-        chai.assert.isFalse(res.text.includes("Likes: 1"));
+        chai.assert.isTrue(res.text.includes("Redirecting"));
         return done();
       });
 
