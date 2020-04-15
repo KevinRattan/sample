@@ -64,21 +64,6 @@ app.delete('/event/like', (req, res) => {
    .then((data) => res.json(data));
 });
 
-// put because this is an update. Passes through to shared method.
-app.put('/event/like', (req, res) => {
-   db.addLike(req.body.id)
-   .then((data) => {
-    console.log(data);
-    res.json(data);
-});
-});
-
-// Passes through to shared method.
-// Delete distinguishes this route from put above
-app.delete('/event/like', (req, res) => {
-   db.removeLike(req.body.id)
-   .then((data) => res.json(data));
-});
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
