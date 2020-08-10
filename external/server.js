@@ -2,7 +2,7 @@
 
 console.log(`process.env.SERVER = ${process.env.SERVER}`);
 // get the environment variable, but default to localhost:8082 if its not set
-const SERVER = (process.env.SERVER ? process.env.SERVER : "http://localhost:8082")
+const SERVER = process.env.SERVER ? process.env.SERVER : "http://localhost:8082";
 
 // express is a nodejs web server
 // https://www.npmjs.com/package/express
@@ -122,7 +122,7 @@ app.use((err, req, res, next) => {
 });
 
 // specify the port and start listening
-const PORT = 8080;
+const PORT = process.env.PORT ? process.env.PORT : 8080;
 const server = app.listen(PORT, () => {
     const host = server.address().address;
     const port = server.address().port;
