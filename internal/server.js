@@ -20,9 +20,16 @@ const firestore = new Firestore(
 
 // create the server
 const app = express();
-
 // the backend server will parse json, not a form request
 app.use(bodyParser.json());
+
+// allow AJAX calls from 3rd party domains
+app.use(function (req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, MERGE, GET, DELETE, OPTIONS');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+})
 
 // mock events data - for a real solution this data should be coming 
 // from a cloud data store
@@ -33,9 +40,6 @@ const mockEvents = {
     ]
 };
 
-
-
-
 // health endpoint - returns an empty array
 app.get('/', (req, res) => {
     res.json([]);
@@ -45,7 +49,6 @@ app.get('/', (req, res) => {
 app.get('/version', (req, res) => {
     res.json({ version: '1.0.0' });
 });
-
 
 // responsible for retrieving events from firestore and adding 
 // firestore's generated id to the returned object
@@ -75,8 +78,6 @@ function getEvents(req, res) {
         });
 };
 
-
-
 // this has been modifed to call the shared getEvents method that
 // returns data from firestore
 app.get('/events', (req, res) => {
@@ -100,7 +101,6 @@ app.post('/event', (req, res) => {
         getEvents(req, res);
     });
 });
-
 
 // function used by both like and unlike. If increment = true, a like is added.
 // If increment is false, a like is removed.
@@ -146,7 +146,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message });
 });
 
-const PORT = 8082;
+const PORT = process.env.PORT ? process.env.PORT : 8082;
 const server = app.listen(PORT, () => {
     const host = server.address().address;
     const port = server.address().port;
