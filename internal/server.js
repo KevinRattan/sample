@@ -14,7 +14,7 @@ const app = express();
 // the backend server will parse json, not a form request
 app.use(bodyParser.json());
 
-// allow calls from 3rd party servers
+// allow AJAX calls from 3rd party domains
 app.use(function (req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
     res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, MERGE, GET, DELETE, OPTIONS');
@@ -31,9 +31,6 @@ const mockEvents = {
     ]
 };
 
-
-
-
 // health endpoint - returns an empty array
 app.get('/', (req, res) => {
     res.json([]);
@@ -43,7 +40,6 @@ app.get('/', (req, res) => {
 app.get('/version', (req, res) => {
     res.json({ version: '1.0.0' });
 });
-
 
 // mock events endpoint. this would be replaced by a call to a datastore
 // if you went on to develop this as a real application.
@@ -72,11 +68,10 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message });
 });
 
-const PORT = 8082;
+const PORT = process.env.PORT ? process.env.PORT : 8082;
 const server = app.listen(PORT, () => {
     const host = server.address().address;
     const port = server.address().port;
-
     console.log(`Events app listening at http://${host}:${port}`);
 });
 

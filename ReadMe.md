@@ -10,7 +10,7 @@
         1. run **node server.js** in the *internal* terminal
         1. run **npm start** in the *external* terminal
         1. click on the "preview" button of your Cloud Shell.
-    1. Using Your own machine (Windows users, see note at bottom this file):  
+    1. Alternatively, using Your own machine (Windows users, see note at bottom this file):  
         prerequisites: node and npm  
         1. open two separate terminal sessions:  
             * in one terminal **cd sample-master/internal**  
