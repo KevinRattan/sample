@@ -14,6 +14,15 @@ const app = express();
 // the backend server will parse json, not a form request
 app.use(bodyParser.json());
 
+// allow AJAX calls from 3rd party domains
+app.use(function (req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, MERGE, GET, DELETE, OPTIONS');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+})
+
+
 // mock events data - for a real solution this data should be coming 
 // from a cloud data store
 const mockEvents = {
@@ -22,9 +31,6 @@ const mockEvents = {
         { title: 'another event', id: 2, description: 'something even cooler', location: 'Johns pizza', likes: 0 }
     ]
 };
-
-
-
 
 // health endpoint - returns an empty array
 app.get('/', (req, res) => {
@@ -35,7 +41,6 @@ app.get('/', (req, res) => {
 app.get('/version', (req, res) => {
     res.json({ version: '1.0.0' });
 });
-
 
 // mock events endpoint. this would be replaced by a call to a datastore
 // if you went on to develop this as a real application.
@@ -61,8 +66,6 @@ app.post('/event', (req, res) => {
     res.json(mockEvents);
 });
 
-
-
 // Likes an event - in a real solution, this would update a cloud datastore.
 // Currently this simply increments the like counter in the mock array in memory
 // this will produce unexpected behavior in a stateless kubernetes cluster. 
@@ -78,7 +81,6 @@ app.post('/event/like', (req, res) => {
 // Currently this simply decrements the like counter in the mock array in memory
 // this will produce unexpected behavior in a stateless kubernetes cluster. 
 app.delete('/event/like', (req, res) => {
-
     console.log (req.body.id);
     var objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.id));
     var likes = mockEvents.events[objIndex].likes;
@@ -88,13 +90,12 @@ app.delete('/event/like', (req, res) => {
     res.json(mockEvents);
 });
 
-
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: err.message });
 });
 
-const PORT = 8082;
+const PORT = process.env.PORT ? process.env.PORT : 8082;
 const server = app.listen(PORT, () => {
     const host = server.address().address;
     const port = server.address().port;
