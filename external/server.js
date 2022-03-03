@@ -1,5 +1,3 @@
-'use strict';
-
 console.log(`process.env.SERVER = ${process.env.SERVER}`);
 // get the environment variable, but default to localhost:8082 if its not set
 const SERVER = process.env.SERVER ? process.env.SERVER : "http://localhost:8082";
@@ -16,7 +14,9 @@ const bodyParser = require('body-parser');
 // https://www.npmjs.com/package/express-handlebars
 // - look inside the views folder for the templates
 // data is inserted into a template inside {{ }}
-const hbs = require('express-handlebars');
+const engine = require('express-handlebars').engine;
+
+
 
 // request is used to make REST calls to the backend microservice
 // details here: https://www.npmjs.com/package/request
@@ -27,7 +27,7 @@ const app = express();
 
 // set up handlbars as the templating engine
 app.set('view engine', 'hbs');
-app.engine('hbs', hbs({
+app.engine('hbs', engine({
     extname: 'hbs',
     defaultView: 'default'
 }));
