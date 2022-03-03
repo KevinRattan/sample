@@ -16,7 +16,7 @@ const bodyParser = require('body-parser');
 // https://www.npmjs.com/package/express-handlebars
 // - look inside the views folder for the templates
 // data is inserted into a template inside {{ }}
-const hbs = require('express-handlebars');
+const engine = require('express-handlebars').engine;
 
 // request is used to make REST calls to the backend microservice
 // details here: https://www.npmjs.com/package/request
@@ -26,8 +26,7 @@ var request = require('request');
 const app = express();
 
 // set up handlbars as the templating engine
-app.set('view engine', 'hbs');
-app.engine('hbs', hbs({
+app.engine('hbs', engine({
     extname: 'hbs',
     defaultView: 'default'
 }));
