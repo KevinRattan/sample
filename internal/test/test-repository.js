@@ -1,12 +1,9 @@
 var chai = require('chai');
+const sinon = require('sinon');
 var repo = require('../repository');
-var db = require('./mock-firestore');
-
+var db = sinon.mock(require('mariadb'))
 
 describe('Testing Get Events', function () {
-    afterEach(function () {
-        db.snapshot.empty = false;
-    });
     it('should return events  ', function () {
         const request = [];
         repo.getEvents(db).then(
@@ -15,26 +12,8 @@ describe('Testing Get Events', function () {
             }
         )
     });
-    it('should return mock events when no data yet in firestore ', function () {
-        db.snapshot.empty = true;
+    it('should return mock events when no data in db ', function () {
         repo.getEvents(db).then(
-            (data) => {
-                chai.expect(data.events[0].title).to.equal('a mock event');
-            }
-        )
-    });
-    it('should return mock events when errors using firestore ', function () {
-        const firestore = {
-            collection: function (arg) {
-                return {
-                    get: function () {
-                       return Promise.resolve({});  //should error on foreach
-                    }
-                }
-            }
-            
-        }
-        repo.getEvents(firestore).then(
             (data) => {
                 chai.expect(data.events[0].title).to.equal('a mock event');
             }
@@ -70,7 +49,6 @@ describe('Testing Un-Like Event', function () {
         )
     });
 });
-
 
 describe('Testing Like Event', function () {
     it('should increment likes for event ', function () {

@@ -1,107 +1,153 @@
-'use strict';
+// Going to connect to MySQL database
+const mariadb = require('mariadb');
 
-// bring in firestore
-const Firestore = require("@google-cloud/firestore");
+const HOST = process.env.DBHOST ? process.env.DBHOST : "localhost";
+const USER = process.env.DBUSER ? process.env.DBUSER : "events_user";
+const PASSWORD = process.env.DBPASSWORD ? process.env.DBPASSWORD : "letmein!";
+const DATABASE = process.env.DBDATABASE ? process.env.DBDATABASE : "events_db";
 
-// configure with current project
-const db = new Firestore(
-    {
-        projectId: process.env.GOOGLE_CLOUD_PROJECT
-    }
-);
+async function getConnection(db) {
+    return await db.createConnection(
+        {
+            host: HOST,
+            user: USER,
+            password: PASSWORD,
+            database: DATABASE
+        });
 
-// mock events data - for a real solution this data should be coming 
-// from a cloud data store
+}
+
+// mock events data - Once deployed the data will come from database
 const mockEvents = {
     events: [
-        { title: 'a mock event', id: 1, description: 'something really cool', location: 'Joes pizza', likes: 0 },
-        { title: 'another mock event', id: 2, description: 'something even cooler', location: 'Johns pizza', likes: 0 }
+        { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00' },
+        { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00' },
     ]
 };
 
+const dbEvents = { events: [] };
 
-// responsible for retrieving events from firestore and adding 
-// firestore's generated id to the returned object
-async function getEvents(firestore = db) {
-  return firestore.collection("Events").get()
-        .then((snapshot) => {
-            if (!snapshot.empty) {
-                const ret = { events: [] };
-                snapshot.docs.forEach(element => {
-                    //get data
-                    const el = element.data();
-                    //get internal firestore id
-                    el._id = element.id;
-                    //add object to array
-                    ret.events.push(el);
-                }, this);
-                return ret;
-            } 
-            // if no data has yet been added to firestore, return mock data
-            return mockEvents;
-        })
-        .catch((err) => {
-            console.error('Error getting events', err);
-            return mockEvents;
+
+function cleanUp(conn, err) {
+    //handle query error
+    console.log(err);
+    if (conn && conn.destroy) {
+        conn.destroy();
+    }
+    return mockEvents;
+}
+
+async function getEvents(db = mariadb) {
+    const conn = getConnection(db)
+    return conn.then(conn => {
+        const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
+        return conn.query(sql)
+            .then(rows => {
+                console.log(rows); 
+                dbEvents.events = [];
+                rows.forEach((row) => {
+                    const ev = {
+                        title: row.title,
+                        description: row.description,
+                        location: row.location,
+                        id: row.id,
+                        likes: row.likes,
+                        datetime_added: row.datetime_added
+                    };
+                    dbEvents.events.push(ev);
+                });
+                conn.end();
+                return dbEvents;
+            })
+            .catch(err => {
+                return cleanUp(conn, err);
+            });
+    })
+        .catch(err => {
+            return cleanUp(conn, err);
         });
 };
 
 
-// This has been modified to insert into firestore, and then call 
-// the shared getEvents method.
-async function addEvent(req, firestore = db) {
-    // create a new object from the json data. The id property
-    // has been removed because it is no longer required.
-    // Firestore generates its own unique ids
+async function addEvent(req, db = mariadb) {
+    // create a new object from the json data and add an id
     const ev = {
         title: req.body.title,
         description: req.body.description,
         location: req.body.location,
-        likes: 0
+        id: mockEvents.events.length + 1,
     }
-    return firestore.collection("Events").add(ev).then(ret => {
-        // return events using shared method that adds __id
-        return getEvents(firestore);
-    });
+    const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?);';
+    const values = [ev.title, ev.description, ev.location];
+    const conn = getConnection(db);
+    return conn.then(conn => {
+        conn.query(sql, values)
+            .then(() => {
+                conn.end();
+                return {};
+            })
+            .catch(err => {
+                //handle query error
+                console.log(err);
+                mockEvents.events.push(ev);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return {};
+            });
+    })
+        .catch(err => {
+            return cleanUp();
+        });
 };
 
 
 // function used by both like and unlike. If increment = true, a like is added.
 // If increment is false, a like is removed.
-async function changeLikes(id, increment, firestore) {
-    // return the existing objct
-   return firestore.collection("Events").doc(id).get()
-        .then((snapshot) => {
-            const el = snapshot.data();
-            // if you have elements in firestore with no likes property
-            if (!el.likes) {
-                el.likes = 0;
-            }
-            // increment the likes
+async function changeLikes(id, increment, db = mariadb) {
+    const get_likes_sql = `SELECT likes from events WHERE id = ?;`
+    const update_sql = `UPDATE events SET likes = ? WHERE id = ?`;
+    const conn = getConnection(db);
+    return conn.then(conn => {
+        conn.query(get_likes_sql, id)
+        .then((rows) => {
+            let total = rows[0].likes;
             if (increment) {
-                el.likes++;
+                total++;
             }
-            else if(el.likes > 0) {
-                el.likes--;
+            else if (total > 0) {
+                total--;
             }
-            // do the update
-            return firestore.collection("Events")
-                .doc(id).update(el).then((ret) => {
-                    // return events using shared method that adds __id
-                    return getEvents(firestore);
+            conn.query(update_sql, [total, id])
+                .then(() => {
+                    if (increment) {
+                        console.log("Like added");
+                    }
+                    else {
+                        console.log("Like removed");
+                    }
                 });
+            conn.end();
+            return {};
         })
-        .catch(err => { console.log(err) });
+        .catch(err => {
+            return cleanUp(conn, err);
+        });
+    })
+    .catch(err => {
+        return cleanUp(conn, err);
+    });;
+
 }
 
-async function addLike(id, firestore = db) {
+async function addLike(id) {
     console.log("adding like to = " + id);
-    return changeLikes(id, true, firestore);
+    return changeLikes(id, true);
 };
 
-async function removeLike(id, firestore = db) {
+async function removeLike(id) {
     console.log("removing like from = " + id);
-    return changeLikes(id, false, firestore);
+    return changeLikes(id, false);
 };
 
 

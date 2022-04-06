@@ -4,3 +4,4 @@ npm-debug.log*
 node_modules/
 .nyc_output/
 tmp/
+user.sql

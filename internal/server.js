@@ -38,11 +38,9 @@ app.get('/version', (req, res) => {
 // this has been modifed to call the shared getEvents method that
 // returns data from firestore
 app.get('/events', (req, res) => {
-    db.getEvents()
-        .then((data) => {
-            console.log(data);
-            res.json(data);
-        });
+   db.getEvents().then((data) => {
+       res.json(data);
+    });
 });
 
 // This has been modified to insert into firestore, and then call 
@@ -59,7 +57,6 @@ app.post('/event', (req, res) => {
 app.put('/event/like', (req, res) => {
     db.addLike(req.body.id)
         .then((data) => {
-            console.log(data);
             res.json(data);
         });
 });
