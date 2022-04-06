@@ -7,13 +7,20 @@ const PASSWORD = process.env.DBPASSWORD ? process.env.DBPASSWORD : "letmein!";
 const DATABASE = process.env.DBDATABASE ? process.env.DBDATABASE : "events_db";
 
 async function getConnection(db) {
-    return await db.createConnection(
-        {
-            host: HOST,
-            user: USER,
-            password: PASSWORD,
-            database: DATABASE
-        });
+    try {
+        return await db.createConnection(
+            {
+                host: HOST,
+                user: USER,
+                password: PASSWORD,
+                database: DATABASE
+            });
+    }
+    catch (err) {
+        // uncomment this line to help see why connection is failing.
+        // console.log(err);
+        return Promise.resolve(null);
+    }
 
 }
 
@@ -27,23 +34,13 @@ const mockEvents = {
 
 const dbEvents = { events: [] };
 
-
-function cleanUp(conn, err) {
-    //handle query error
-    console.log(err);
-    if (conn && conn.destroy) {
-        conn.destroy();
-    }
-    return mockEvents;
-}
-
 async function getEvents(db = mariadb) {
-    const conn = getConnection(db)
-    return conn.then(conn => {
+    const conn = await getConnection(db);
+    if (conn) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
         return conn.query(sql)
             .then(rows => {
-                console.log(rows); 
+                console.log(rows);
                 dbEvents.events = [];
                 rows.forEach((row) => {
                     const ev = {
@@ -60,13 +57,20 @@ async function getEvents(db = mariadb) {
                 return dbEvents;
             })
             .catch(err => {
-                return cleanUp(conn, err);
+                //handle query error
+                console.log(err);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return mockEvents;
             });
-    })
-        .catch(err => {
-            return cleanUp(conn, err);
-        });
+    }
+    else {
+        return mockEvents;
+    }
+
 };
+
 
 
 async function addEvent(req, db = mariadb) {
@@ -76,18 +80,19 @@ async function addEvent(req, db = mariadb) {
         description: req.body.description,
         location: req.body.location,
         id: mockEvents.events.length + 1,
+        likes: 0,
+        datetime_added: new Date().toUTCString()
     }
     const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?);';
     const values = [ev.title, ev.description, ev.location];
-    const conn = getConnection(db);
-    return conn.then(conn => {
+    const conn = await getConnection(db);
+    if (conn) {
         conn.query(sql, values)
             .then(() => {
                 conn.end();
                 return {};
             })
             .catch(err => {
-                //handle query error
                 console.log(err);
                 mockEvents.events.push(ev);
                 if (conn && conn.destroy) {
@@ -95,48 +100,65 @@ async function addEvent(req, db = mariadb) {
                 }
                 return {};
             });
-    })
-        .catch(err => {
-            return cleanUp();
-        });
+    }
+    else {
+        mockEvents.events.push(ev);
+        return {};
+    }
 };
 
+function cleanUpLike(err, conn, id, increment) {
+    console.log(err);
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == id));
+    let likes = mockEvents.events[objIndex].likes;
+    if (increment) {
+        mockEvents.events[objIndex].likes = ++likes;
+    }
+    else if (likes > 0) {
+        mockEvents.events[objIndex].likes = --likes;
+    }
+    if (conn && conn.destroy) {
+        conn.destroy();
+    }
+    return {};
+}
 
 // function used by both like and unlike. If increment = true, a like is added.
 // If increment is false, a like is removed.
 async function changeLikes(id, increment, db = mariadb) {
     const get_likes_sql = `SELECT likes from events WHERE id = ?;`
     const update_sql = `UPDATE events SET likes = ? WHERE id = ?`;
-    const conn = getConnection(db);
-    return conn.then(conn => {
+    const conn = await getConnection(db);
+    if (conn) {
         conn.query(get_likes_sql, id)
-        .then((rows) => {
-            let total = rows[0].likes;
-            if (increment) {
-                total++;
-            }
-            else if (total > 0) {
-                total--;
-            }
-            conn.query(update_sql, [total, id])
-                .then(() => {
-                    if (increment) {
-                        console.log("Like added");
-                    }
-                    else {
-                        console.log("Like removed");
-                    }
-                });
-            conn.end();
-            return {};
-        })
-        .catch(err => {
-            return cleanUp(conn, err);
-        });
-    })
-    .catch(err => {
-        return cleanUp(conn, err);
-    });;
+            .then((rows) => {
+                let total = rows[0].likes;
+                if (increment) {
+                    total++;
+                }
+                else if (total > 0) {
+                    total--;
+                }
+                conn.query(update_sql, [total, id])
+                    .then(() => {
+                        if (increment) {
+                            console.log("Like added");
+                        }
+                        else {
+                            console.log("Like removed");
+                        }
+                    });
+                conn.end();
+                return {};
+            })
+            .catch(err => {
+                return cleanUpLike(err, conn, id, increment);
+            });
+
+    }
+    else {
+        return cleanUpLike("no connection", conn, id, increment);
+    }
 
 }
 
