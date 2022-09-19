@@ -1,11 +1,13 @@
 from google.cloud import storage, vision
+from google.cloud import pubsub_v1
 from wand.image import Image
 import os
 
-PREFIX = "thumbnail"
 client = storage.Client()
 vision_client = vision.ImageAnnotatorClient()
 destination_bucket =  os.environ.get("BUCKET", "kr-test-live")
+project_id =  os.environ.get("PROJECT_ID", "kr-test-work")
+topic_id =  os.environ.get("TOPIC_ID", "image_updated")
 
 def make_thumbnail(data, context):
 
@@ -15,7 +17,7 @@ def make_thumbnail(data, context):
     # name of the image in temp bucket 
     currentName = data['name']
     # renamed for live bucket
-    newName = f"{PREFIX}-{data['name']}"
+    newName = f"thumbnail-{data['name']}"
     size = 280
 
     # Get the bucket which the image has been uploaded to
@@ -33,6 +35,11 @@ def make_thumbnail(data, context):
         # save the image to the final bucket
         thumbnail_blob = final_bucket.blob(newName)
         thumbnail_blob.upload_from_string(thumbnail.make_blob())
+        # publish message to topic
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(project_id, topic_id)
+        future = publisher.publish(topic_path, b'new image to approve!', image=currentName)
+        print(future.result())
     else:
         print('Not replacing image as was inappropriate')
 
