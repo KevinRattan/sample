@@ -36,14 +36,16 @@ app.get('/version', (req, res) => {
 });
 
 // this has been modifed to call the shared getEvents method that
-// returns data from firestore
+// returns data from db
 app.get('/events', (req, res) => {
    db.getEvents().then((data) => {
+    // remove any unapproved images
+    data.events = data.events.map(el => el.image.startsWith("thumb")  ? el : {...el, image: ''} );
        res.json(data);
     });
 });
 
-// This has been modified to insert into firestore, and then call 
+// This has been modified to insert into db, and then call 
 // the shared getEvents method.
 app.post('/event', (req, res) => {
     db.addEvent(req)
