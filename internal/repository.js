@@ -27,8 +27,8 @@ async function getConnection(db) {
 // mock events data - Once deployed the data will come from database
 const mockEvents = {
     events: [
-        { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00' },
-        { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00' },
+        { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+        { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
     ]
 };
 
@@ -37,7 +37,7 @@ const dbEvents = { events: [] };
 async function getEvents(db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
-        const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
+        const sql = 'SELECT id, title, description, location, image, likes, datetime_added FROM events;';
         return conn.query(sql)
             .then(rows => {
                 console.log(rows);
@@ -48,6 +48,7 @@ async function getEvents(db = mariadb) {
                         description: row.description,
                         location: row.location,
                         id: row.id,
+                        image: row.image,
                         likes: row.likes,
                         datetime_added: row.datetime_added
                     };
@@ -79,12 +80,13 @@ async function addEvent(req, db = mariadb) {
         title: req.body.title,
         description: req.body.description,
         location: req.body.location,
+        image: req.body.fileName,
         id: mockEvents.events.length + 1,
         likes: 0,
         datetime_added: new Date().toUTCString()
     }
-    const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?);';
-    const values = [ev.title, ev.description, ev.location];
+    const sql = 'INSERT INTO events (title, description, location, image) VALUES (?,?,?,?);';
+    const values = [ev.title, ev.description, ev.location, ev.image];
     const conn = await getConnection(db);
     if (conn) {
         conn.query(sql, values)

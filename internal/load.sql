@@ -8,6 +8,7 @@ CREATE TABLE events(
    title VARCHAR(255) NOT NULL,
    description TEXT NOT NULL,
    location VARCHAR(255) NOT NULL,
+   image VARCHAR(255) NOT NULL,
    likes INT DEFAULT 0,
    datetime_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY ( id )
@@ -15,9 +16,9 @@ CREATE TABLE events(
 
 SHOW TABLES;
 
-INSERT INTO events (title, description, location) VALUES ('Pet Show', 'Super-fun with furry friends!', 'Dog Park');
+INSERT INTO events (title, description, location, image) VALUES ('Pet Show', 'Super-fun with furry friends!', 'Dog Park', '');
 
-INSERT INTO events (title,  description, location) VALUES ('Company Picnic', 'Come for free food and drinks.', 'At the lake');
+INSERT INTO events (title,  description, location, '') VALUES ('Company Picnic', 'Come for free food and drinks.', 'At the lake', '');
 
 
 SELECT * FROM events;

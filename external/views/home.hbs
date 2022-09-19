@@ -2,6 +2,9 @@
   {{#events}}
     <li>
         <h2>{{ title }}</h2>
+        {{#if image}}
+    <img src="https://storage.googleapis.com/{{../bucket}}/{{image}}"
+{{/if}}
         <p>{{ description }}</p>
         <p>Location: {{ location }}</p>
         <p>Likes: {{ likes }}
