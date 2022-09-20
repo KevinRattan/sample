@@ -48,7 +48,6 @@ app.get('/events', (req, res) => {
 app.post('/event', (req, res) => {
     db.addEvent(req)
         .then((data) => {
-            console.log(data);
             res.json(data);
         });
 });
@@ -71,8 +70,6 @@ app.delete('/event/like', (req, res) => {
 
 // put because this is an update. Passes through to shared method.
 app.put('/event/approve', (req, res) => {
-    console.log(req.body);
-    console.log(req.body.image); 
     db.approve(req.body.image)
         .then((data) => {
             res.json(data);
