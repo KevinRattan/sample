@@ -1,7 +1,9 @@
 const chai = require('chai');
 const nock = require('nock');
 const request = require('supertest');
+const sinon = require('sinon');
 const app = require('../server');
+const pb = require('../pubsubRepository');
 
 describe('GET /', function () {
   it('responds with home page', function (done) {
@@ -14,9 +16,9 @@ describe('GET /', function () {
       .reply(200, {
         "status": 200,
         "events": [
-          { title: 'an event', id: 1234, description: 'something really cool', location: 'Joes pizza', likes: 0 },
-          { title: 'another event', id: 5678, description: 'something even cooler', location: 'Johns pizza', likes: 0 }
-        ]
+          { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+          { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+      ]
       });
 
     request(app)
@@ -64,7 +66,7 @@ describe('GET /', function () {
 
 describe('POST /event', function () {
   it('adds an event', function (done) {
-  const data = { title: 'test event', description: 'even cooler test', id: 4321, location: 'Some Test Place', likes: 0 };
+  const data = { title: 'test event', description: 'even cooler test', id: 4321, location: 'Some Test Place', likes: 0, image: '' };
     //specify the url to be intercepted
     nock("http://localhost:8082")
       //define the method to be intercepted
@@ -73,14 +75,14 @@ describe('POST /event', function () {
       .reply(200, {
         "status": 200,
         "events": [
-          { title: 'an event', id: 1234, description: 'something really cool', location: 'Joes pizza', likes: 0 },
-          { title: 'another event', id: 5678, description: 'something even cooler', location: 'Johns pizza', likes: 0 },
+          { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+          { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
           data
-        ]
+      ]
       });
-
     request(app)
       .post('/event')
+      .field(data)
       .expect(302)
       .end((err, res) => {
         if (err) {
@@ -108,9 +110,9 @@ describe('POST /event/like', function () {
       .reply(200, {
         "status": 200,
         "events": [
-          { title: 'an event', id: 1234, description: 'something really cool', location: 'Joes pizza', likes: 1 },
-          { title: 'another event', id: 5678, description: 'something even cooler', location: 'Johns pizza', likes: 0 },
-        ]
+          { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+          { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+      ]
       });
 
       request(app)
@@ -140,9 +142,9 @@ describe('POST /event/unlike', function () {
       .reply(200, {
         "status": 200,
         "events": [
-          { title: 'an event', id: 1234, description: 'something really cool', location: 'Joes pizza', likes: 0 },
-          { title: 'another event', id: 5678, description: 'something even cooler', location: 'Johns pizza', likes: 0 },
-        ]
+          { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+          { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+      ]
       });
 
       request(app)
@@ -161,5 +163,43 @@ describe('POST /event/unlike', function () {
 });
 
 
+
+describe('POST /approval', function () {
+  let pbStub;
+  beforeEach(function() {
+    pbStub = sinon.stub(pb, "acknowledgeApproval").resolves('');
+  });
+  afterEach(function() {
+    pbStub.restore();
+  });
+  it('updates image and acknowledges pubsub message', function (done) {
+  const data = { id: 1234 };
+    //specify the url to be intercepted
+    nock("http://localhost:8082")
+      //define the method to be intercepted
+      .post('/event/approve')
+      //respond with a OK and the specified JSON response
+      .reply(200, {
+        "status": 200,
+        "events": [
+          { id: 1, title: 'a mock event', description: 'something really cool', location: 'Chez Joe Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+          { id: 2, title: 'another mock event', description: 'something even cooler', location: 'Chez John Pizza', likes: 0, datetime_added: '2022-02-01:12:00', image: '' },
+      ]
+      });
+
+      request(app)
+      .post('/event/approve')
+      .expect(302)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        chai.assert.isTrue(res.text.includes("Redirecting"));
+        return done();
+      });
+
+
+  });
+});
 
 

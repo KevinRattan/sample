@@ -153,13 +153,12 @@ app.post('/event',
     upload.any(), // second argument - how to parse the uploaded content
     // into req.body
     (req, res) => {
-        if (req.files[0] != null) {
+        if (req.files && req.files[0]) {
             console.log(`uploaded file: ${req.files[0].originalname}`);  
             const fileName = `${uuidv4()}.jpg`
             // save the file to a bucket
             imageRepository.saveImage(req.files[0], fileName)
             .then(() => { 
-                console.log('saved');
                 postOnToServer(req, res, fileName);
             }) ;
         } else {
