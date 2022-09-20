@@ -1,0 +1,8 @@
+{{#messages}}
+<img src="https://storage.googleapis.com/{{../bucket}}/thumbnail-{{image}}" />
+<form method="POST" action="/event/approve">
+    <input type="hidden" value="{{ackId}}" name="id">
+    <input type="hidden" value="{{image}}" name="image">
+    <input type="submit" value="Approve">
+</form>
+{{/messages}}

@@ -39,9 +39,7 @@ app.get('/version', (req, res) => {
 // returns data from db
 app.get('/events', (req, res) => {
    db.getEvents().then((data) => {
-    // remove any unapproved images
-    data.events = data.events.map(el => el.image.startsWith("thumb")  ? el : {...el, image: ''} );
-       res.json(data);
+        res.json(data);
     });
 });
 
@@ -68,6 +66,17 @@ app.put('/event/like', (req, res) => {
 app.delete('/event/like', (req, res) => {
     db.removeLike(req.body.id)
         .then((data) => res.json(data));
+});
+
+
+// put because this is an update. Passes through to shared method.
+app.put('/event/approve', (req, res) => {
+    console.log(req.body);
+    console.log(req.body.image); 
+    db.approve(req.body.image)
+        .then((data) => {
+            res.json(data);
+        });
 });
 
 app.use((err, req, res, next) => {

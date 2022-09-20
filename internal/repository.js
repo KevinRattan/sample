@@ -85,6 +85,7 @@ async function addEvent(req, db = mariadb) {
         likes: 0,
         datetime_added: new Date().toUTCString()
     }
+    console.log(ev);
     const sql = 'INSERT INTO events (title, description, location, image) VALUES (?,?,?,?);';
     const values = [ev.title, ev.description, ev.location, ev.image];
     const conn = await getConnection(db);
@@ -175,13 +176,43 @@ async function removeLike(id) {
 };
 
 
+async function approve(image, db = mariadb) {
+    const update_sql = `UPDATE events SET image = ? WHERE image = ?`;
+    const conn = await getConnection(db);
+    if (conn) {
+        conn.query(update_sql, ["thumbnail-" + image, image])
+        .then(() => {
+            conn.end();
+            return {};   
+        })
+        .catch(err => {
+            if (conn && conn.destroy) {
+                conn.destroy();
+            }
+            return {};
+        });
+    }
+    else {
+        const objIndex = mockEvents.events.findIndex((obj => obj.image == image));
+        console.log(image);
+        console.log(objIndex);
+        if (objIndex != -1) {
+            mockEvents.events[objIndex].image = `thumbnail-${image}`;
+        }
+        return {};
+    }
+
+}
+
+
 const eventRepository = function () {
 
     return {
         getEvents: getEvents,
         addEvent: addEvent,
         addLike: addLike,
-        removeLike: removeLike
+        removeLike: removeLike,
+        approve:approve
     };
 }();
 

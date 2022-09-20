@@ -10,8 +10,11 @@ const LIVE_BUCKET = process.env.LIVE_BUCKET ? process.env.LIVE_BUCKET : "kr-test
 // https://www.npmjs.com/package/express
 const express = require('express');
 
-// local code to upload to cload storage
+// local code to upload to cloud storage
 const imageRepository = require('./imageRepository');
+
+// local code to read from pub sub
+const pubsubRepository = require('./pubsubRepository');
 
 // converts content in the request into parameter req.body
 // for multi-part form data
@@ -79,6 +82,8 @@ app.get('/', (req, res) => {
                 console.log('error:', error); // Print the error if one occurred
                 console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
                 console.log(body); // print the return from the server microservice
+                   // remove any unapproved images
+                const events = body.events.map(el => el.image.startsWith("thumb")  ? el : {...el, image: ''} );
                 res.render('home',
                     {
                         layout: 'default',  //the outer html page
@@ -86,12 +91,31 @@ app.get('/', (req, res) => {
                         // {{body}} in the layout - the code
                         // in here inserts values from the JSON
                         // received from the server
-                        events: body.events,
+                        events: events,
                         bucket: LIVE_BUCKET
                     }); // pass the data from the server to the template
             }
         });
 });
+
+// defines a route that receives the request to /
+app.get('/approval', (req, res) => {
+    pubsubRepository.synchronousPull().then((messages) => {
+        console.log(messages);
+        res.render('images',
+        {
+            layout: 'default',  //the outer html page
+            template: 'index-template', // the partial view inserted into 
+            // {{body}} in the layout - the code
+            // in here inserts values from the JSON
+            // received from the server
+            messages: messages,
+            bucket: LIVE_BUCKET
+        }); // pass the data from the server to the template
+    });
+
+});
+
 
 
 // send post on to server
@@ -195,6 +219,38 @@ app.post('/event/unlike',
             });
 
     });    
+
+
+// defines a route that receives the post request to /event/like to like the event
+app.post('/event/approve',
+    urlencodedParser, // second argument - how to parse the uploaded content
+    // into req.body
+    (req, res) => {
+        // make a request to the backend microservice using the request package
+        // the URL for the backend service should be set in configuration 
+        // using an environment variable. Here, the variable is passed 
+        // to npm start inside package.json:
+        //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
+        // changed to a put now that real data is being updated
+        request.put(  // first argument: url + data + formats
+            {
+                url: SERVER + '/event/approve',  // the microservice end point for liking an event
+                body: req.body,  // content of the form
+                headers: { // uploading json
+                    "Content-Type": "application/json"
+                },
+                json: true // response from backend will be json format
+            },
+            () => {
+                // now acknowledge receipt of message
+                pubsubRepository.acknowledgeApproval([req.body.id])
+                .then(() => {
+                    res.redirect("/"); // redirect to the home page on successful response
+                });                
+            });
+
+    });
+
 
 // create other get and post methods here - version, login,  etc
 
