@@ -1,9 +1,10 @@
+<a href="/approval">Check for images to approve</a>
 <ul >
   {{#events}}
     <li>
         <h2>{{ title }}</h2>
         {{#if image}}
-            <img src="https://storage.googleapis.com/{{../bucket}}/{{image}}"
+            <p><img src="https://storage.googleapis.com/{{../bucket}}/{{image}}" alt="title"></p>
         {{/if}}
         <p>{{ description }}</p>
         <p>Location: {{ location }}</p>

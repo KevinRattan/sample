@@ -1,4 +1,4 @@
-google-cloud-vision==0.42.0
-google-cloud-storage==1.26.0
-google-cloud-pubsub==2.13.6
+google-cloud-vision
+google-cloud-storage
+google-cloud-pubsub
 Wand==0.5.9
