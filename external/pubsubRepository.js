@@ -1,15 +1,12 @@
-/**
- * TODO(developer): Uncomment these variables before running the sample.
- */
-const projectId = 'kr-test-work';
-const subscriptionNameOrId = 'image_upated-sub';
+const PROJECTID = process.env.GOOGLE_CLOUD_PROJECT ? process.env.GOOGLE_CLOUD_PROJECT : "your-project-id";
+const SUBSCRIPTION = process.env.SUBSCRIPTION ? process.env.SUBSCRIPTION : "your-subscription";;
 // Imports the Google Cloud client library. v1 is for the lower level
 // proto access.
 const { v1 } = require('@google-cloud/pubsub');
 // Creates a client; cache this for further use.
 const subClient = new v1.SubscriberClient();
 // The low level API client requires a name only.
-const formattedSubscription = subClient.subscriptionPath(projectId, subscriptionNameOrId);
+const formattedSubscription = subClient.subscriptionPath(PROJECTID, SUBSCRIPTION);
 
 
 const pubsubRepository = (function () {

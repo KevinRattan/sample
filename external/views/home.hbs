@@ -1,11 +1,9 @@
-<a href="/approval">Check for images to approve</a>
+
 <ul >
   {{#events}}
     <li>
         <h2>{{ title }}</h2>
-        {{#if image}}
-            <p><img src="https://storage.googleapis.com/{{../bucket}}/{{image}}" alt="title"></p>
-        {{/if}}
+        {{!-- code to display images goes here --}}
         <p>{{ description }}</p>
         <p>Location: {{ location }}</p>
         <p>Likes: {{ likes }}
@@ -27,8 +25,7 @@
        title: <input name="title" type="text" /> <br />
        description: <input name="description" type="text" /> <br />
        location: <input name="location" type="text" /> <br />
-       jpeg image: <input type="file" name="image" id="image" />
-       <br />
+        <input type="hidden" name="image" id="image" value="" />
         <input type="submit" name="submit" value="submit" />
     </form>
   </div>
