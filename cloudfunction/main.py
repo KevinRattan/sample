@@ -1,9 +1,3 @@
-# This has the following dependencies in addition to enabling apis:
-# 1. two image buckets - one private from which it is triggered, 
-#                        one public read for approved thumbnails
-# 2. a pubsub topic for the message if approved
-
-
 from google.cloud import storage, vision
 from google.cloud import pubsub_v1
 from wand.image import Image
@@ -11,9 +5,7 @@ import os
 
 client = storage.Client()
 vision_client = vision.ImageAnnotatorClient()
-destination_bucket =  os.environ.get("BUCKET", "kr-test-live")
-project_id =  os.environ.get("PROJECT_ID", "kr-test-work")
-topic_id =  os.environ.get("TOPIC_ID", "image_updated")
+destination_bucket =  os.environ.get("BUCKET")
 
 def make_thumbnail(data, context):
     # check if image is safe before doing work:
@@ -45,8 +37,3 @@ def make_thumbnail(data, context):
         # save the image to the final bucket
         thumbnail_blob = final_bucket.blob(new_name)
         thumbnail_blob.upload_from_string(thumbnail.make_blob())
-        # publish message to topic
-        publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(project_id, topic_id)
-        future = publisher.publish(topic_path, b'new image to approve!', image=current_name)
-        print(future.result())
