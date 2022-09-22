@@ -1,5 +1,5 @@
 const PROJECTID = process.env.GOOGLE_CLOUD_PROJECT ? process.env.GOOGLE_CLOUD_PROJECT : "your-project-id";
-const SUBSCRIPTION = process.env.SUBSCRIPTION ? process.env.SUBSCRIPTION : "your-subscription";;
+const SUBSCRIPTION = process.env.SUBSCRIPTION ? process.env.SUBSCRIPTION : "your-subscription";
 // Imports the Google Cloud client library. v1 is for the lower level
 // proto access.
 const { v1 } = require('@google-cloud/pubsub');
