@@ -8,8 +8,12 @@ vision_client = vision.ImageAnnotatorClient()
 destination_bucket =  os.environ.get("BUCKET")
 
 def make_thumbnail(data, context):
-    # check if image is safe before doing work:
     current_name = data['name']
+    # a bit of defensive code in case anyone accidentally sets up a recursive loop by 
+    # saving to the wrong bucket
+    if current_name.startswith("thumb"):
+        return "nothing to do"
+    # then check if image is safe before doing work:
     bucket_name = data['bucket']
     blob_uri = f'gs://{bucket_name}/{current_name}'
     blob_source = {'source': {'image_uri': blob_uri}}
