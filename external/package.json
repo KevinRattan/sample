@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "SERVER=http://localhost:8082 node server.js",
+    "start": "SERVER=http://localhost:8082 BUCKET=kr-test-hca-private  node server.js",
     "test": "SERVER=http://localhost:8082 mocha --exit"
   },
   "keywords": [],

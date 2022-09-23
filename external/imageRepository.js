@@ -1,5 +1,5 @@
 const { Storage } = require('@google-cloud/storage');
-const BUCKET = process.env.BUCKET ? process.env.BUCKET : "kr-test-work-temp";
+const BUCKET = process.env.BUCKET ? process.env.BUCKET : "";
 
 const imageRepository = (function() {
 

@@ -3,8 +3,7 @@
 console.log(`process.env.SERVER = ${process.env.SERVER}`);
 // get the environment variable, but default to localhost:8082 if its not set
 const SERVER = process.env.SERVER ? process.env.SERVER : "http://localhost:8082";
-const BUCKET = process.env.BUCKET ? process.env.BUCKET : "";
-const LIVE_BUCKET = process.env.LIVE_BUCKET ? process.env.LIVE_BUCKET : "";
+const LIVE_BUCKET = process.env.LIVE_BUCKET ? process.env.LIVE_BUCKET : "kr-test-hca-public";
 
 // express is a nodejs web server
 // https://www.npmjs.com/package/express
@@ -155,8 +154,17 @@ app.post('/event',
     (req, res) => {
         
         // code for image upload goes here
-
-        postOnToServer(req, res, '');
+        if (req.files && req.files[0]) {
+            console.log(`uploaded file: ${req.files[0].originalname}`);  
+            const fileName = `${uuidv4()}.jpg`
+            // save the file to a bucket
+            imageRepository.saveImage(req.files[0], fileName)
+            .then(() => { 
+                postOnToServer(req, res, fileName);
+            }) ;
+        } else {
+            postOnToServer(req, res, '');
+        }
     });
 
 
