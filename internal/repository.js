@@ -72,7 +72,7 @@ async function getEvents(db = mariadb) {
 
 };
 
-async function getEvent(id, db = mariadb) { 
+async function getEvent(id, db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
@@ -100,7 +100,7 @@ async function getEvent(id, db = mariadb) {
 
 
 // create a function to udpate an event
-async function updateEvent(req, db = mariadb) { 
+async function updateEvent(req, db = mariadb) {
 
     const ev = {
         title: req.body.title,
@@ -116,7 +116,7 @@ async function updateEvent(req, db = mariadb) {
             .then(() => {
                 console.log("updated event");
                 conn.end();
-                return { result: "success"};;
+                return { result: "success" };;
             })
             .catch(err => {
                 console.log(err);
@@ -124,18 +124,18 @@ async function updateEvent(req, db = mariadb) {
                 if (conn && conn.destroy) {
                     conn.destroy();
                 }
-                return { result: "error"};
+                return { result: "error" };
             });
     }
     else {
         updateMock(ev);
-        return { result: "success"};
+        return { result: "success" };
     }
 }
 
-function updateMock(ev) { 
+function updateMock(ev) {
     const objIndex = mockEvents.events.findIndex((obj => obj.id == ev.id));
-    mockEvents.events[objIndex] = {...mockEvents.events[objIndex], ...ev};  
+    mockEvents.events[objIndex] = { ...mockEvents.events[objIndex], ...ev };
     console.log("updated mock event");
     // return mockEvents.events[objIndex];
 }
@@ -160,7 +160,7 @@ async function addEvent(req, db = mariadb) {
             .then((id) => {
                 conn.end();
                 console.log("inserted event with id ", id);
-                return {id};
+                return { id };
             })
             .catch(err => {
                 console.log(err);
@@ -196,7 +196,7 @@ async function deleteEvent(id, db = mariadb) {
                 }
                 return deleteMock(id);
             });
-    }   
+    }
     else {
         return deleteMock(id);
     }
@@ -225,36 +225,30 @@ function cleanUpLike(err, conn, id, increment) {
         conn.destroy();
     }
     // console.log("event is ", mockEvents.events[objIndex]);
-    return mockEvents.events[objIndex].likes;
+    return mockEvents.events[objIndex];
 }
+
+
 
 // function used by both like and unlike. If increment = true, a like is added.
 // If increment is false, a like is removed.
 async function changeLikes(id, increment, db = mariadb) {
-    const get_likes_sql = `SELECT likes from events WHERE id = ?;`
-    const update_sql = `UPDATE events SET likes = ? WHERE id = ?`;
+    const update_sql = increment ?
+        `UPDATE events SET likes = likes + 1 WHERE id = ?; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;`
+        : 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
     const conn = await getConnection(db);
     if (conn) {
-        conn.query(get_likes_sql, id)
+        conn.query(update_sql, [id, id])
             .then((rows) => {
-                let total = rows[0].likes;
-                if (increment) {
-                    total++;
-                }
-                else if (total > 0) {
-                    total--;
-                }
-                conn.query(update_sql, [total, id])
-                    .then(() => {
-                        if (increment) {
-                            console.log("Like added");
-                        }
-                        else {
-                            console.log("Like removed");
-                        }
-                    });
+                const row = rows[0];
                 conn.end();
-                return total;
+                if (increment) {
+                    console.log("Like added");
+                }
+                else {
+                    console.log("Like removed");
+                }
+                return row;
             })
             .catch(err => {
                 return cleanUpLike(err, conn, id, increment);
@@ -285,7 +279,7 @@ const eventRepository = function () {
         getEvent, getEvent,
         addEvent: addEvent,
         updateEvent: updateEvent,
-        deleteEvent: deleteEvent,   
+        deleteEvent: deleteEvent,
         addLike: addLike,
         removeLike: removeLike
     };

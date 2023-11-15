@@ -21,3 +21,5 @@ INSERT INTO events (title,  description, location) VALUES ('Company Picnic', 'Co
 
 
 SELECT * FROM events;
+
+

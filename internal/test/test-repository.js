@@ -90,14 +90,17 @@ describe('Testing Un-Like Event', function () {
         let data = await repo.removeLike(1);
         data = await repo.removeLike(1);
         data = await repo.removeLike(1);
-        expect(data).to.equal(0);
+        data = await repo.removeLike(1);
+        data = await repo.removeLike(1);
+        data = await repo.removeLike(1);
+        expect(data.likes).to.equal(0);
     });
 
     it('should decrement likes for event ', async function () {
-        let data =  await repo.addLike(1);
-        expect(data).to.equal(1);
+        let data = await repo.addLike(1);
+        expect(data.likes).to.equal(1);
         data = await repo.removeLike(1);
-        expect(data).to.equal(0);
+        expect(data.likes).to.equal(0);
     });
 
 
@@ -106,14 +109,14 @@ describe('Testing Un-Like Event', function () {
 describe('Testing Like Event', function () {
     it('should increment likes for event ', async function () {
         const data = await repo.addLike(1);
-        expect(data).to.equal(1);
+        expect(data.likes).to.equal(1);
     });
 
     it('should increment likes for event every time it is called ', async function () {
         let data = await repo.addLike(2);
-        expect(data).to.equal(1);
+        expect(data.likes).to.equal(1);
         data = await repo.addLike(2);
-        expect(data).to.equal(2);
+        expect(data.likes).to.equal(2);
     });
 });
 
@@ -277,5 +280,58 @@ describe('Testing Delete Event with Db', function () {
 
 
 
+describe('Testing Un-Like Event with Db ', function () {
+    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
 
+    beforeEach(function () {
+
+        expectedQuery = 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        expectedParams = [2, 2];
+
+        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
+        connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
+
+    });
+
+    afterEach(function () {
+        connectionStub.restore();
+    });
+
+
+    it('should decrement likes for event ', async function () {
+        await repo.removeLike(2, db);
+        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+    });
+
+
+});
+
+
+describe('Testing Like Event with Db ', function () {
+    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
+
+    beforeEach(function () {
+
+        expectedQuery = 'UPDATE events SET likes = likes + 1 WHERE id = ?; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        expectedParams = [2, 2];
+
+        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
+        connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
+
+    });
+
+    afterEach(function () {
+        connectionStub.restore();
+    });
+
+
+    it('should increment likes for event ', async function () {
+        await repo.addLike(2, db);
+        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+    });
+
+
+});
 
