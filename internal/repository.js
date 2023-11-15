@@ -17,9 +17,10 @@ async function getConnection(db) {
             });
     }
     catch (err) {
+        console.log("no connection - using mock data");
         // uncomment this line to help see why connection is failing.
         // console.log(err);
-        return Promise.resolve(null);
+        return null;
     }
 
 }
@@ -40,7 +41,7 @@ async function getEvents(db = mariadb) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
         return conn.query(sql)
             .then(rows => {
-                console.log(rows);
+                console.log("retrieved all events");
                 dbEvents.events = [];
                 rows.forEach((row) => {
                     const ev = {
@@ -71,6 +72,74 @@ async function getEvents(db = mariadb) {
 
 };
 
+async function getEvent(id, db = mariadb) { 
+    const conn = await getConnection(db);
+    if (conn) {
+        const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        return conn.query(sql, id)
+            .then(rows => {
+                console.log("retrieved event");
+                const row = rows[0];
+                conn.end();
+                return row;
+            })
+            .catch(err => {
+                //handle query error
+                console.log(err);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return mockEvents.events.find((obj => obj.id == id));
+            });
+    }
+    else {
+        return mockEvents.events.find((obj => obj.id == id));
+    }
+}
+
+
+
+// create a function to udpate an event
+async function updateEvent(req, db = mariadb) { 
+
+    const ev = {
+        title: req.body.title,
+        description: req.body.description,
+        location: req.body.location,
+        id: req.body.id
+    }
+    const sql = 'UPDATE events SET title = ?, description = ?, location = ? WHERE id = ?;';
+    const values = [ev.title, ev.description, ev.location, ev.id];
+    const conn = await getConnection(db);
+    if (conn) {
+        conn.query(sql, values)
+            .then(() => {
+                console.log("updated event");
+                conn.end();
+                return { result: "success"};;
+            })
+            .catch(err => {
+                console.log(err);
+                updateMock(ev);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return { result: "error"};
+            });
+    }
+    else {
+        updateMock(ev);
+        return { result: "success"};
+    }
+}
+
+function updateMock(ev) { 
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == ev.id));
+    mockEvents.events[objIndex] = {...mockEvents.events[objIndex], ...ev};  
+    console.log("updated mock event");
+    // return mockEvents.events[objIndex];
+}
+
 
 
 async function addEvent(req, db = mariadb) {
@@ -83,14 +152,15 @@ async function addEvent(req, db = mariadb) {
         likes: 0,
         datetime_added: new Date().toUTCString()
     }
-    const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?);';
+    const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?) RETURNING id;';
     const values = [ev.title, ev.description, ev.location];
     const conn = await getConnection(db);
     if (conn) {
         conn.query(sql, values)
-            .then(() => {
+            .then((id) => {
                 conn.end();
-                return {};
+                console.log("inserted event with id ", id);
+                return {id};
             })
             .catch(err => {
                 console.log(err);
@@ -98,14 +168,48 @@ async function addEvent(req, db = mariadb) {
                 if (conn && conn.destroy) {
                     conn.destroy();
                 }
-                return {};
+                return ev.id;
             });
     }
     else {
+        console.log("mock event added: ", ev);
         mockEvents.events.push(ev);
-        return {};
+        return ev.id;
     }
 };
+
+
+//create a function to delete an event that deletes a mock event if there is no database connection
+async function deleteEvent(id, db = mariadb) {
+    const sql = 'DELETE FROM events WHERE id = ?;';
+    const conn = await getConnection(db);
+    if (conn) {
+        conn.query(sql, id)
+            .then(() => {
+                conn.end();
+                return id;
+            })
+            .catch(err => {
+                console.log(err);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return deleteMock(id);
+            });
+    }   
+    else {
+        return deleteMock(id);
+    }
+}
+
+
+function deleteMock(id) {
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == id));
+    mockEvents.events.splice(objIndex, 1);
+    return id;
+}
+
+
 
 function cleanUpLike(err, conn, id, increment) {
     console.log(err);
@@ -120,7 +224,8 @@ function cleanUpLike(err, conn, id, increment) {
     if (conn && conn.destroy) {
         conn.destroy();
     }
-    return {};
+    // console.log("event is ", mockEvents.events[objIndex]);
+    return mockEvents.events[objIndex].likes;
 }
 
 // function used by both like and unlike. If increment = true, a like is added.
@@ -149,7 +254,7 @@ async function changeLikes(id, increment, db = mariadb) {
                         }
                     });
                 conn.end();
-                return {};
+                return total;
             })
             .catch(err => {
                 return cleanUpLike(err, conn, id, increment);
@@ -177,7 +282,10 @@ const eventRepository = function () {
 
     return {
         getEvents: getEvents,
+        getEvent, getEvent,
         addEvent: addEvent,
+        updateEvent: updateEvent,
+        deleteEvent: deleteEvent,   
         addLike: addLike,
         removeLike: removeLike
     };
