@@ -285,8 +285,9 @@ describe('Testing Un-Like Event with Db ', function () {
 
     beforeEach(function () {
 
-        expectedQuery = 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
-        expectedParams = [2, 2];
+        expectedQuery = 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0;';
+        expectedParams = 2;
+        expectedQuery2 = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
 
         fakeQuery = sinon.fake.resolves({ result: 'success'});
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
@@ -301,7 +302,8 @@ describe('Testing Un-Like Event with Db ', function () {
 
     it('should decrement likes for event ', async function () {
         await repo.removeLike(2, db);
-        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+        sinon.assert.calledWith(fakeQuery.getCall(0), expectedQuery, expectedParams);
+        sinon.assert.calledWith(fakeQuery.getCall(1), expectedQuery2, expectedParams);
     });
 
 
@@ -313,8 +315,9 @@ describe('Testing Like Event with Db ', function () {
 
     beforeEach(function () {
 
-        expectedQuery = 'UPDATE events SET likes = likes + 1 WHERE id = ?; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
-        expectedParams = [2, 2];
+        expectedQuery = 'UPDATE events SET likes = likes + 1 WHERE id = ?;';
+        expectedQuery2 = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        expectedParams = 2;
 
         fakeQuery = sinon.fake.resolves({ result: 'success'});
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
@@ -329,7 +332,8 @@ describe('Testing Like Event with Db ', function () {
 
     it('should increment likes for event ', async function () {
         await repo.addLike(2, db);
-        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+        sinon.assert.calledWith(fakeQuery.getCall(0), expectedQuery, expectedParams);
+        sinon.assert.calledWith(fakeQuery.getCall(1), expectedQuery2, expectedParams);
     });
 
 

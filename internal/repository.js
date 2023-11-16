@@ -234,26 +234,27 @@ function cleanUpLike(err, conn, id, increment) {
 // If increment is false, a like is removed.
 async function changeLikes(id, increment, db = mariadb) {
     const update_sql = increment ?
-        `UPDATE events SET likes = likes + 1 WHERE id = ?; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;`
-        : 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0; SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        'UPDATE events SET likes = likes + 1 WHERE id = ?;'
+        : 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0;';
+    const select_sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
     const conn = await getConnection(db);
     if (conn) {
-        conn.query(update_sql, [id, id])
-            .then((rows) => {
-                const row = rows[0];
-                conn.end();
-                if (increment) {
-                    console.log("Like added");
-                }
-                else {
-                    console.log("Like removed");
-                }
-                return row;
-            })
-            .catch(err => {
-                return cleanUpLike(err, conn, id, increment);
-            });
-
+        try {
+            await conn.query(update_sql, id);
+            const rows = conn.query(select_sql, id);
+            const row = rows[0];
+            conn.end();
+            if (increment) {
+                console.log("Like added");
+            }
+            else {
+                console.log("Like removed");
+            }
+            return row;
+        }
+        catch (err) {
+            return cleanUpLike(err, conn, id, increment);
+        };
     }
     else {
         return cleanUpLike("no connection", conn, id, increment);
