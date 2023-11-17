@@ -14,6 +14,19 @@ const mockEvents = [
 
 describe('Testing Get Events returning mock data ', function () {
 
+    let spy;
+    beforeEach(function () {
+
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
     it('should return mock data when no db ', async function () {
         const data = await repo.getEvents();
         expect(data.events.length).to.equal(2);
@@ -21,14 +34,37 @@ describe('Testing Get Events returning mock data ', function () {
         expect(data.events[0].title).to.equal("a mock event");
     });
 
+    it('should revert to mock data when no db present ', async function () {
+        await repo.getEvents();
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+    });
+
 });
 
 
 describe('Testing Get Event returns mock data ', function () {
+
+    let spy;
+    beforeEach(function () {
+
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
     it('should return mock data when no db ', async function () {
         const data = await repo.getEvent(1);
         expect(data.id).to.equal(1);
         expect(data.title).to.equal("a mock event");
+    });
+
+    it('should revert to mock data when no db present ', async function () {
+        await repo.getEvent(1);
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
     });
 
 });
@@ -36,6 +72,7 @@ describe('Testing Get Event returns mock data ', function () {
 
 
 describe('Testing Add Event with mock data', function () {
+    let spy;
     beforeEach(function () {
         request = {
             body: {
@@ -46,7 +83,16 @@ describe('Testing Add Event with mock data', function () {
                 likes: 0
             }
         }
+
+             // Create a spy for console.log
+             spy = sinon.spy(console, 'log');
     });
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
 
     it('should add mock data when no db and return id', async function () {
         const data = await repo.addEvent(request);
@@ -58,11 +104,16 @@ describe('Testing Add Event with mock data', function () {
         expect(data).to.equal(4);
     });
 
+    it('should revert to mock data when no db present ', async function () {
+        await repo.addEvent(request);
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+    });
 
 });
 
 describe('Testing Update Event with mock data', function () {
 
+    let spy;
     beforeEach(function () {
         request = {
             body: {
@@ -73,6 +124,14 @@ describe('Testing Update Event with mock data', function () {
                 likes: 0
             }
         }
+             // Create a spy for console.log
+             spy = sinon.spy(console, 'log');
+    });
+
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
     });
 
     it('should return success when event updated', async function () {
@@ -80,11 +139,29 @@ describe('Testing Update Event with mock data', function () {
         expect(data.result).to.equal('success');
     });
 
+
+    it('should revert to mock data when no db present ', async function () {
+        await repo.updateEvent(request);
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+    });
+
 });
 
 
 describe('Testing Un-Like Event', function () {
 
+    let spy;
+    beforeEach(function () {
+
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
 
     it('should never go below 0 likes for event ', async function () {
         let data = await repo.removeLike(1);
@@ -104,9 +181,27 @@ describe('Testing Un-Like Event', function () {
     });
 
 
+    it('should revert to mock data when no db present ', async function () {
+        await repo.removeLike(1);
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+    });
+
 });
 
 describe('Testing Like Event', function () {
+    let spy;
+    beforeEach(function () {
+
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
     it('should increment likes for event ', async function () {
         const data = await repo.addLike(1);
         expect(data.likes).to.equal(1);
@@ -118,31 +213,71 @@ describe('Testing Like Event', function () {
         data = await repo.addLike(2);
         expect(data.likes).to.equal(2);
     });
+
+    it('should revert to mock data when no db present ', async function () {
+        await repo.addLike(2);
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+    });
 });
 
 
 describe('Testing Delete Event with mock data', function () {
 
+    let spy;
+    beforeEach(function () {
 
-    it('should return id when event deleted', async function () {
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
+
+    it('should return id when event deleted and use mock db when no connection ', async function () {
         const data = await repo.deleteEvent(2);
         expect(data).to.equal(2);
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
     });
+
 
 });
 
 describe('Testing Get Comments with mock data', function () {
+    let spy;
+    beforeEach(function () {
+
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
     it('should return comments for event ', async function () {
         const data = await repo.getComments(1);
         expect(data.length).to.equal(2);
         expect(data[0].id).to.equal(1);
         expect(data[0].comment).to.equal("this is a comment");
     });
+
+
+    it('should revert to mock data when no db present ', async function () {
+        const data = await repo.getComments(1);
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+    });
 });
 
 
 // create a test for adding comments for a given eevent using mock data 
 describe('Testing Add Comments with mock data', function () {
+    let spy;
     beforeEach(function () {
         request = {
             body: {
@@ -151,14 +286,62 @@ describe('Testing Add Comments with mock data', function () {
                 id: 5
             }
         }
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
     }
     );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
     // create the asserts or expectations for the test
     it('should add comment to event ', async function () {
         const data = await repo.addComment(request);
         expect(data).to.be.a('number');
     });
+
+
+    it('should revert to mock data when no db present ', async function () {
+        const data = await repo.addComment(request);
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+    });
 });
+
+// create a test of deleting comments for a given event using mock data
+describe('Testing Delete Comments with mock data', function () {
+
+    let spy;
+    beforeEach(function () {
+        // Create a spy for console.log
+        spy = sinon.spy(console, 'log');
+    }
+    );
+
+    afterEach(function () {
+        // Always restore the spy after each test to avoid affecting other tests
+        spy.restore();
+    });
+
+
+    it('should return id when comment deleted', async function () {
+        const data = await repo.deleteComment(1, 1);
+        expect(data).to.equal(1);
+    });
+
+    it('should revert to mock data when no db present ', async function () {
+        // Create a spy for console.log
+ 
+        const data = await repo.deleteComment(1, 1);
+
+            // Check if console.log was called with a specific message
+        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+
+
+    });
+});
+
 
 
 describe('Testing Get Events with db ', function () {
@@ -420,5 +603,38 @@ describe('Testing Add Comments with Db', function () {
         await repo.addComment(request, db);
         // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
         sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+    });
+});
+
+describe('Testing Delete Comments with Db', function () {
+    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
+
+    beforeEach(function () {
+        request = {
+            body: {
+                event_id: 1,
+                id: 5
+            }
+        }
+        expectedQuery = 'DELETE FROM comments WHERE id = ?;';
+        expectedParams = request.body.id;
+
+        fakeQuery = sinon.fake.resolves(5);
+        fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
+        connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
+
+    });
+
+    afterEach(function () {
+        connectionStub.restore();
+    });
+    // add teh asserts or expectations for the test
+    it('should delete comment from event ', async function () {
+        // Create a spy for console.log
+     
+        await repo.deleteComment(request.body.event_id, request.body.id, db);
+        // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
+        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+     
     });
 });

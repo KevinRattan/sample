@@ -62,13 +62,10 @@ app.get('/', (req, res) => {
                     });
             }
             else {
-                console.log('error:', error); // Print the error if one occurred
-                console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-                console.log(body); // print the return from the server microservice
-                res.render('home',
+                 res.render('home',
                     {
                         layout: 'default',  //the outer html page
-                        template: 'index-template', // the partial view inserted into 
+                        template: 'home', // the partial view inserted into 
                         // {{body}} in the layout - the code
                         // in here inserts values from the JSON
                         // received from the server
@@ -77,6 +74,54 @@ app.get('/', (req, res) => {
             }
         });
 });
+
+// create a route for the event details page that calls the backend microservice to get the event details
+app.get('/event/:id', (req, res) => {
+    // make a request to the backend microservice using the request package
+    // the URL for the backend service should be set in configuration 
+    // using an environment variable. Here, the variable is passed 
+    // to npm start inside package.json:
+    //  "start": "SERVER=http://localhost:8082 node server.js",
+    request.get(  // first argument: url + return format
+        {
+            url: SERVER + '/event/' + req.params.id,  // the microservice end point for events
+            json: true  // response from server will be json format
+        }, // second argument: function with three args,
+        // runs when server response received
+        // body hold the return from the server
+        (error, response, body) => {
+            if (error) {
+                console.log('error:', error); // Print the error if one occurred
+                res.render('error_message',
+                    {
+                        layout: 'default',  //the outer html page
+                        error: error // pass the data from the server to the template
+                    });
+            }
+            else {
+                 res.render('event',
+                    {
+                        layout: 'default',  //the outer html page
+                        template: 'event', // the partial view inserted into 
+                        // {{body}} in the layout - the code
+                        // in here inserts values from the JSON
+                        // received from the server
+                        event: body
+                    }); // pass the data from the server to the template
+            }
+        });
+});
+
+
+// defines a route that receives the request to /
+app.get('/about', (req, res) => {
+      res.render('about',
+        {
+            layout: 'default',  //the outer html page
+            template: 'index-template', // the partial view inserted into 
+        }); // pass the data from the server to the template
+});
+
 
 // defines a route that receives the post request to /event
 app.post('/event',
@@ -97,9 +142,59 @@ app.post('/event',
                 },
                 json: true // response from server will be json format
             },
-            () => {  
-                res.redirect("/"); // redirect to the home page on successful response
+             // second argument: function with three args,
+            // runs when server response received
+            // body hold the return from the server
+            (error) => {
+                if (error) {
+                    console.log('error:', error); // Print the error if one occurred
+                    res.render('error_message',
+                        {
+                            layout: 'default',  //the outer html page
+                            error: error // pass the data from the server to the template
+                        });
+                }
+                else {
+                    res.redirect("/"); // redirect to the home page on successful response
+                }
             });
+
+    });
+ 
+app.post('/event/update',
+    urlencodedParser, // second argument - how to parse the uploaded content
+    // into req.body
+    (req, res) => {
+        // make a request to the backend microservice using the request package
+        // the URL for the backend service should be set in configuration 
+        // using an environment variable. Here, the variable is passed 
+        // to npm start inside package.json:
+        //  "start": "SERVER=http://localhost:8082 node server.js",
+        request.put(  // first argument: url + data + formats
+            {
+                url: SERVER + '/event',  // the microservice end point for adding an event
+                body: req.body,  // content of the form
+                headers: { // uploading json
+                    "Content-Type": "application/json"
+                },
+                json: true // response from server will be json format
+            },
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else { 
+                res.redirect(`/event/${req.body.event_id}`); // redirect to the event page on successful response
+               }
+           });
 
     });
 
@@ -124,9 +219,22 @@ app.post('/event/like',
                 },
                 json: true // response from backend will be json format
             },
-            () => {  
-                res.redirect("/"); // redirect to the home page on successful response
-            });
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else {
+                   res.redirect("/"); // redirect to the home page on successful response
+               }
+           });
 
     });
 
@@ -150,11 +258,132 @@ app.post('/event/unlike',
                 },
                 json: true // response from backend will be json format
             },
-            () => {  
-                res.redirect("/"); // redirect to the home page on successful response
-            });
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else {
+                   res.redirect("/"); // redirect to the home page on successful response
+               }
+           });
 
     });    
+
+// defines a route that receives the delete request to /event/delete/:id to delete the event
+app.get('/event/delete/:id',
+    urlencodedParser, // second argument - how to parse the uploaded content
+    // into req.body
+    (req, res) => {
+        // make a request to the backend microservice using the request package
+        // the URL for the backend service should be set in configuration 
+        // using an environment variable. Here, the variable is passed 
+        // to npm start inside package.json:
+        //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
+        request.delete(  // first argument: url + data + formats
+            {
+                url: SERVER + '/event/' + req.params.id,  // the microservice end point for liking an event
+                json: true // response from backend will be json format
+            },
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else {
+                   res.redirect("/"); // redirect to the home page on successful response
+               }
+           });
+
+    });
+
+
+// create a post route to add a comment to an event
+app.post('/comment',
+    urlencodedParser, // second argument - how to parse the uploaded content
+    // into req.body
+    (req, res) => {
+        // make a request to the backend microservice using the request package
+        // the URL for the backend service should be set in configuration 
+        // using an environment variable. Here, the variable is passed 
+        // to npm start inside package.json:
+        //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
+        request.post(  // first argument: url + data + formats
+            {
+                url: SERVER + '/comment',  // the microservice end point for liking an event
+                body: req.body,  // content of the form
+                headers: { // uploading json
+                    "Content-Type": "application/json"
+                },
+                json: true // response from backend will be json format
+            },
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else {
+                   res.redirect(`/event/${req.body.event_id}`); // redirect to the event page on successful response
+               }
+           });
+
+    });
+
+
+// create a post route to delete a comment from an event
+app.get('/comment/delete/:event_id/:id',
+    urlencodedParser, // second argument - how to parse the uploaded content
+    // into req.body
+    (req, res) => {
+        // make a request to the backend microservice using the request package
+        // the URL for the backend service should be set in configuration 
+        // using an environment variable. Here, the variable is passed 
+        // to npm start inside package.json:
+        //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
+        request.delete(  // first argument: url + data + formats
+            {
+                url: SERVER + `/comment/${req.params.event_id}/${req.params.id}`,  // the microservice end point for liking an event
+                json: true // response from backend will be json format
+            },
+            // second argument: function with three args,
+           // runs when server response received
+           // body hold the return from the server
+           (error) => {
+               if (error) {
+                   console.log('error:', error); // Print the error if one occurred
+                   res.render('error_message',
+                       {
+                           layout: 'default',  //the outer html page
+                           error: error // pass the data from the server to the template
+                       });
+               }
+               else {
+                   res.redirect(`/event/${req.body.event_id}`); // redirect to the event page on successful response
+               }
+           });
+
+    });
 
 // create other get and post methods here - version, login,  etc
 

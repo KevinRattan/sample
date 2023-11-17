@@ -35,20 +35,55 @@ app.get('/version', (req, res) => {
     res.json({ version: '1.0.0' });
 });
 
-// this has been modifed to call the shared getEvents method that
-// returns data from firestore
+
 app.get('/events', (req, res) => {
    db.getEvents().then((data) => {
        res.json(data);
     });
 });
 
-// This has been modified to insert into firestore, and then call 
-// the shared getEvents method.
+
+app.get('/event/:id', (req, res) => {
+   console.log("Retrieving event with id ", req.params.id);
+    db.getEvent(req.params.id).then((data) => {
+        res.json(data);
+     });
+ });
+
 app.post('/event', (req, res) => {
     db.addEvent(req)
         .then((data) => {
-            console.log(data);
+            res.json(data);
+        });
+});
+
+app.post('/comment', (req, res) => {
+    db.addComment(req)
+        .then((data) => {
+            res.json(data);
+        });
+});
+
+// create a route for the route delete /event/:id
+app.delete('/event/:id', (req, res) => {
+    db.deleteEvent(req.params.id)
+        .then((data) => {
+            res.json(data);
+        });
+});
+
+app.delete('/comment/:event_id/:id', (req, res) => {
+    db.deleteComment(req.params.event_id, req.params.id)
+        .then((data) => {
+            res.json(data);
+        });
+});
+
+
+
+app.put('/event', (req, res) => {
+    db.updateEvent(req)
+        .then((data) => {
             res.json(data);
         });
 });

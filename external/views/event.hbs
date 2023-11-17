@@ -1,0 +1,95 @@
+<h2>Event:</h2>
+<div class="card">
+    <div class="card-body">
+        <h2 class="card-title">{{event.title}}</h2>
+        <p class="card-text">{{event.description}}</p>
+        <p class="card-text">Date: {{event.date}}</p>
+        <p class="card-text">Location: {{event.location}}</p>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#edit-event-modal">Edit
+            Event</button>
+    </div>
+</div>
+
+
+{{#if event.comments}}
+<h3>Comments:</h3>
+{{#each event.comments}}
+
+<div class="card" style="margin:5px">
+    <div class="card-body d-flex align-items-start justify-content-between">
+        <div class="card-text">{{comment}}</div>   
+        <a href="/comment/delete/{{event_id}}/{{id}}" class="btn btn-danger"><span class="bi bi-trash"></span></a>
+    </div>
+</div>
+{{/each}}
+{{else}}
+<p>No comments yet.</p>
+{{/if}}
+
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-comment-modal">
+    Add Comment
+</button>
+
+<div class="modal fade" id="add-comment-modal" tabindex="-1" role="dialog" aria-labelledby="add-comment-modal-label"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-comment-modal-label">Add Comment</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="add-comment-form" action="/comment" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="comment-text" class="col-form-label">Comment:</label>
+                        <textarea name="comment" class="form-control" id="comment-text"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                      <input type="hidden" value="{{event.id}}" name="event_id">
+                    <button type="submit" class="btn btn-primary">Save Comment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Event Modal -->
+<div class="modal fade" id="edit-event-modal" tabindex="-1" role="dialog" aria-labelledby="edit-event-modal-label"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-event-modal-label">Edit Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/event/update" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{event.title}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea class="form-control" id="description"
+                            name="description">{{event.description}}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location:</label>
+                        <input type="text" class="form-control" id="location" name="location"
+                            value="{{event.location}}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+                <input type="hidden" value="{{event.id}}" name="id">
+            </form>
+        </div>
+    </div>
+</div>
