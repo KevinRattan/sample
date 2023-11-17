@@ -33,6 +33,15 @@ const mockEvents = {
     ]
 };
 
+//  a mock array of comments for each mock event
+mockEvents.events.forEach((ev) => {
+    ev.comments = [
+        { id: 1, event_id: ev.id, comment: 'this is a comment' },
+        { id: 2, event_id: ev.id, comment: 'this is another comment' }
+    ]
+});
+
+
 const dbEvents = { events: [] };
 
 async function getEvents(db = mariadb) {
@@ -41,7 +50,7 @@ async function getEvents(db = mariadb) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
         return conn.query(sql)
             .then(rows => {
-                console.log("retrieved all events");
+                console.log("retrieved all events from db");
                 dbEvents.events = [];
                 rows.forEach((row) => {
                     const ev = {
@@ -63,10 +72,12 @@ async function getEvents(db = mariadb) {
                 if (conn && conn.destroy) {
                     conn.destroy();
                 }
+                console.log("Returned all mock events");
                 return mockEvents;
             });
     }
     else {
+        console.log("Returned all mock events");
         return mockEvents;
     }
 
@@ -78,7 +89,7 @@ async function getEvent(id, db = mariadb) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
         return conn.query(sql, id)
             .then(rows => {
-                console.log("retrieved event");
+                console.log("retrieved event with id", id);
                 const row = rows[0];
                 conn.end();
                 return row;
@@ -98,6 +109,31 @@ async function getEvent(id, db = mariadb) {
 }
 
 
+// create a function to return all comments for an event by its id 
+async function getComments(id, db = mariadb) {
+    const conn = await getConnection(db);
+    if (conn) {
+        const sql = 'SELECT id, event_id, comment FROM comments WHERE event_id = ?;';
+        return conn.query(sql, id)
+            .then(rows => {
+                console.log("retrieved comments for event with id", id);
+                conn.end();
+                return rows;
+            })
+            .catch(err => {
+                //handle query error
+                console.log(err);
+                if (conn && conn.destroy) {
+                    conn.destroy();
+                }
+                return mockEvents.events.find((obj => obj.id == id)).comments;
+            });
+    }
+    else {
+        return mockEvents.events.find((obj => obj.id == id)).comments;
+    }
+}
+
 
 // create a function to udpate an event
 async function updateEvent(req, db = mariadb) {
@@ -114,7 +150,7 @@ async function updateEvent(req, db = mariadb) {
     if (conn) {
         conn.query(sql, values)
             .then(() => {
-                console.log("updated event");
+                console.log("Updated event with id ", ev.id);
                 conn.end();
                 return { result: "success" };;
             })
@@ -136,7 +172,7 @@ async function updateEvent(req, db = mariadb) {
 function updateMock(ev) {
     const objIndex = mockEvents.events.findIndex((obj => obj.id == ev.id));
     mockEvents.events[objIndex] = { ...mockEvents.events[objIndex], ...ev };
-    console.log("updated mock event");
+    console.log("updated mock event with id", ev.id);
     // return mockEvents.events[objIndex];
 }
 
@@ -148,7 +184,7 @@ async function addEvent(req, db = mariadb) {
         title: req.body.title,
         description: req.body.description,
         location: req.body.location,
-        id: mockEvents.events.length + 1,
+        id: -1,
         likes: 0,
         datetime_added: new Date().toUTCString()
     }
@@ -164,38 +200,84 @@ async function addEvent(req, db = mariadb) {
             })
             .catch(err => {
                 console.log(err);
-                mockEvents.events.push(ev);
                 if (conn && conn.destroy) {
                     conn.destroy();
                 }
-                return ev.id;
+                return addMockEvent(ev);
             });
     }
     else {
-        console.log("mock event added: ", ev);
-        mockEvents.events.push(ev);
-        return ev.id;
+        return addMockEvent(ev);
+
     }
 };
 
+function addMockEvent(ev) {
+    ev.id =  mockEvents.events.length + 1;
+    mockEvents.events.push(ev);
+    console.log("mock event added: ", ev);
+    return ev.id;
+}
 
-//create a function to delete an event that deletes a mock event if there is no database connection
-async function deleteEvent(id, db = mariadb) {
-    const sql = 'DELETE FROM events WHERE id = ?;';
+
+async function addComment(req, db = mariadb) {
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.event_id));
+    const comment = {
+        comment: req.body.comment,
+        event_id: req.body.event_id,
+        id: mockEvents.events[objIndex].comments.length + 1
+    }
+    const sql = 'INSERT INTO comments (comment, event_id) VALUES (?,?) RETURNING id;';
+    const values = [comment.comment, comment.event_id];
+    console.log("adding comment to  event with id ", comment.event_id);
     const conn = await getConnection(db);
     if (conn) {
-        conn.query(sql, id)
-            .then(() => {
+        conn.query(sql, values)
+            .then((id) => {
                 conn.end();
-                return id;
+                console.log("inserted comment with id ", id);
+                return { id };
             })
             .catch(err => {
-                console.log(err);
+                addMockComment(comment);
                 if (conn && conn.destroy) {
                     conn.destroy();
                 }
-                return deleteMock(id);
+                return comment.id;
             });
+    }
+    else {
+       return addMockComment(comment);
+    }
+}
+
+function addMockComment(comment) {
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == comment.event_id));
+    mockEvents.events[objIndex].comments.push(comment);
+    console.log("mock comment added: ", comment);
+    return comment.id;
+}
+
+
+async function deleteEvent(id, db = mariadb) {
+    const sql = 'DELETE FROM events WHERE id = ?;';
+    const sql2 = 'DELETE FROM comments;'
+    const conn = await getConnection(db);
+    if (conn) {
+        try {
+            await conn.query(sql2, id);
+            await conn.query(sql, id);
+            conn.end();
+            console.log("deleted event and comments with id ", id);
+            return id;
+        }
+        catch(err) {
+            console.log(err);
+            if (conn && conn.destroy) {
+                conn.destroy();
+            }
+            return deleteMock(id);
+        }
     }
     else {
         return deleteMock(id);
@@ -206,6 +288,7 @@ async function deleteEvent(id, db = mariadb) {
 function deleteMock(id) {
     const objIndex = mockEvents.events.findIndex((obj => obj.id == id));
     mockEvents.events.splice(objIndex, 1);
+    console.log("deleted mock event with id ", id);
     return id;
 }
 
@@ -216,15 +299,17 @@ function cleanUpLike(err, conn, id, increment) {
     const objIndex = mockEvents.events.findIndex((obj => obj.id == id));
     let likes = mockEvents.events[objIndex].likes;
     if (increment) {
+        console.log("added like to mock event with id ", id);
         mockEvents.events[objIndex].likes = ++likes;
     }
     else if (likes > 0) {
         mockEvents.events[objIndex].likes = --likes;
+        console.log("added like to mock event with id ", id);
     }
     if (conn && conn.destroy) {
         conn.destroy();
     }
-    // console.log("event is ", mockEvents.events[objIndex]);
+
     return mockEvents.events[objIndex];
 }
 
@@ -245,10 +330,10 @@ async function changeLikes(id, increment, db = mariadb) {
             const row = rows[0];
             conn.end();
             if (increment) {
-                console.log("Like added");
+                console.log("added like to event with id ", id);
             }
             else {
-                console.log("Like removed");
+                console.log("removed like from event with id ", id);
             }
             return row;
         }
@@ -282,7 +367,9 @@ const eventRepository = function () {
         updateEvent: updateEvent,
         deleteEvent: deleteEvent,
         addLike: addLike,
-        removeLike: removeLike
+        removeLike: removeLike,
+        getComments: getComments,
+        addComment: addComment
     };
 }();
 

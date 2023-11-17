@@ -13,7 +13,7 @@ const mockEvents = [
 
 
 describe('Testing Get Events returning mock data ', function () {
-   
+
     it('should return mock data when no db ', async function () {
         const data = await repo.getEvents();
         expect(data.events.length).to.equal(2);
@@ -121,9 +121,8 @@ describe('Testing Like Event', function () {
 });
 
 
-
 describe('Testing Delete Event with mock data', function () {
-    
+
 
     it('should return id when event deleted', async function () {
         const data = await repo.deleteEvent(2);
@@ -131,6 +130,36 @@ describe('Testing Delete Event with mock data', function () {
     });
 
 });
+
+describe('Testing Get Comments with mock data', function () {
+    it('should return comments for event ', async function () {
+        const data = await repo.getComments(1);
+        expect(data.length).to.equal(2);
+        expect(data[0].id).to.equal(1);
+        expect(data[0].comment).to.equal("this is a comment");
+    });
+});
+
+
+// create a test for adding comments for a given eevent using mock data 
+describe('Testing Add Comments with mock data', function () {
+    beforeEach(function () {
+        request = {
+            body: {
+                event_id: 1,
+                comment: 'this is a comment',
+                id: 5
+            }
+        }
+    }
+    );
+    // create the asserts or expectations for the test
+    it('should add comment to event ', async function () {
+        const data = await repo.addComment(request);
+        expect(data).to.be.a('number');
+    });
+});
+
 
 describe('Testing Get Events with db ', function () {
     let fakeQuery, fakeCreateConnection, connectionStub, expectedQuery;
@@ -147,7 +176,7 @@ describe('Testing Get Events with db ', function () {
 
 
     it('should use a SQL select query ', async function () {
-        await repo.getEvents( db);
+        await repo.getEvents(db);
         // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
         sinon.assert.calledWith(fakeQuery, expectedQuery);
     });
@@ -232,7 +261,7 @@ describe('Testing Update Event with Db', function () {
         expectedQuery = 'UPDATE events SET title = ?, description = ?, location = ? WHERE id = ?;';
         expectedParams = [request.body.title, request.body.description, request.body.location, request.body.id];
 
-        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeQuery = sinon.fake.resolves({ result: 'success' });
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
         connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
 
@@ -253,7 +282,7 @@ describe('Testing Update Event with Db', function () {
 
 
 
-describe('Testing Delete Event with Db', function () { 
+describe('Testing Delete Event with Db', function () {
     let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
 
     beforeEach(function () {
@@ -261,7 +290,7 @@ describe('Testing Delete Event with Db', function () {
         expectedQuery = 'DELETE FROM events WHERE id = ?;';
         expectedParams = 2;
 
-        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeQuery = sinon.fake.resolves({ result: 'success' });
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
         connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
 
@@ -274,9 +303,9 @@ describe('Testing Delete Event with Db', function () {
     it('should delete event using correct sql and arguments ', async function () {
         await repo.deleteEvent(2, db);
         // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
-        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+        sinon.assert.calledWith(fakeQuery.getCall(1), expectedQuery, expectedParams);
     });
-} );
+});
 
 
 
@@ -289,7 +318,7 @@ describe('Testing Un-Like Event with Db ', function () {
         expectedParams = 2;
         expectedQuery2 = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
 
-        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeQuery = sinon.fake.resolves({ result: 'success' });
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
         connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
 
@@ -319,7 +348,7 @@ describe('Testing Like Event with Db ', function () {
         expectedQuery2 = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
         expectedParams = 2;
 
-        fakeQuery = sinon.fake.resolves({ result: 'success'});
+        fakeQuery = sinon.fake.resolves({ result: 'success' });
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
         connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
 
@@ -336,6 +365,60 @@ describe('Testing Like Event with Db ', function () {
         sinon.assert.calledWith(fakeQuery.getCall(1), expectedQuery2, expectedParams);
     });
 
+});
+
+// create a test for getting comments for an individual event using the database
+describe('Testing Get Comments with Db', function () {
+    let fakeQuery, fakeCreateConnection, connectionStub, expectedQuery, expectedParams, id;
+    beforeEach(function () {
+        id = 1
+        expectedQuery = 'SELECT id, event_id, comment FROM comments WHERE event_id = ?;';
+        expectedParams = id;
+        fakeQuery = sinon.fake.resolves(mockEvents);
+        fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
+        connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
+    });
+
+    afterEach(function () {
+        connectionStub.restore();
+    });
+    // create the asserts or expectations for the test
+    it('should use a SQL select query ', async function () {
+        await repo.getComments(id, db);
+        // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
+        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+    });
 
 });
 
+// create a test for adding a comment for a given event using the database by checking the sql statement
+describe('Testing Add Comments with Db', function () {
+    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
+
+    beforeEach(function () {
+        request = {
+            body: {
+                event_id: 1,
+                comment: 'this is a comment',
+                id: 5
+            }
+        }
+        expectedQuery = 'INSERT INTO comments (comment, event_id) VALUES (?,?) RETURNING id;';
+        expectedParams = [request.body.comment, request.body.event_id];
+
+        fakeQuery = sinon.fake.resolves(4);
+        fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
+        connectionStub = sinon.stub(db, 'createConnection').callsFake(fakeCreateConnection);
+
+    });
+
+    afterEach(function () {
+        connectionStub.restore();
+    });
+    // add teh asserts or expectations for the test
+    it('should add comment to event ', async function () {
+        await repo.addComment(request, db);
+        // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
+        sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
+    });
+});
