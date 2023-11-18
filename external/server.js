@@ -379,7 +379,7 @@ app.get('/comment/delete/:event_id/:id',
                        });
                }
                else {
-                   res.redirect(`/event/${req.body.event_id}`); // redirect to the event page on successful response
+                   res.redirect(`/event/${req.params.event_id}`); // redirect to the event page on successful response
                }
            });
 
