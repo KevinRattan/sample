@@ -48,6 +48,7 @@ async function getEvents(db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
         const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events;';
+        console.log(sql);
         return conn.query(sql)
             .then(rows => {
                 console.log("retrieved all events from db");
@@ -83,6 +84,7 @@ async function getEvent(id, db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
         const sql = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comment FROM events e INNER JOIN comments c ON e.id = c.event_id WHERE e.id = ?;';
+        console.log(sql);
         return conn.query(sql, id)
             .then(rows => {
                 console.log("retrieved event with id", id);
@@ -106,6 +108,7 @@ async function getComments(id, db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
         const sql = 'SELECT id, event_id, comment FROM comments WHERE event_id = ?;';
+        console.log(sql);
         return conn.query(sql, id)
             .then(rows => {
                 console.log("retrieved comments for event with id", id);
@@ -133,6 +136,7 @@ async function updateEvent(req, db = mariadb) {
         id: req.body.id
     }
     const sql = 'UPDATE events SET title = ?, description = ?, location = ? WHERE id = ?;';
+    console.log(sql);
     const values = [ev.title, ev.description, ev.location, ev.id];
     const conn = await getConnection(db);
     if (conn) {
@@ -174,6 +178,7 @@ async function addEvent(req, db = mariadb) {
         datetime_added: new Date().toUTCString()
     }
     const sql = 'INSERT INTO events (title, description, location) VALUES (?,?,?) RETURNING id;';
+    console.log(sql);
     const values = [ev.title, ev.description, ev.location];
     const conn = await getConnection(db);
     if (conn) {
@@ -211,6 +216,7 @@ async function addComment(req, db = mariadb) {
         id: mockEvents.events[objIndex].comments.length + 1
     }
     const sql = 'INSERT INTO comments (comment, event_id) VALUES (?,?) RETURNING id;';
+    console.log(sql);
     const values = [comment.comment, comment.event_id];
     console.log("adding comment to  event with id ", comment.event_id);
     const conn = await getConnection(db);
@@ -242,6 +248,7 @@ function addMockComment(comment) {
 // create a delete comment function that takes an id and db and deletes the comment
 async function deleteComment(event_id, id, db = mariadb) {
     const sql = 'DELETE FROM comments WHERE id = ?;';
+    console.log(sql);
     const conn = await getConnection(db);
     if (conn) {
         try {
@@ -270,7 +277,9 @@ function deleteMockComment(event_id, id) {
 
 async function deleteEvent(id, db = mariadb) {
     const sql = 'DELETE FROM events WHERE id = ?;';
+    console.log(sql);
     const sql2 = 'DELETE FROM comments;'
+    console.log(sql2);
     const conn = await getConnection(db);
     if (conn) {
         try {
@@ -326,6 +335,8 @@ async function changeLikes(id, increment, db = mariadb) {
         'UPDATE events SET likes = likes + 1 WHERE id = ?;'
         : 'UPDATE events SET likes = likes - 1 WHERE id = ? AND likes > 0;';
     const select_sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+    console.log(update_sql);
+    console.log(select_sql);
     const conn = await getConnection(db);
     if (conn) {
         try {
