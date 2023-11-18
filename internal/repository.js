@@ -67,9 +67,7 @@ async function getEvents(db = mariadb) {
                 return dbEvents;
             })
             .catch(err => {
-                //handle query error
-                console.log(err);
-                if (conn && conn.destroy) { conn.destroy();  }
+                handleError(err, conn);
                 console.log("Returned all mock events");
                 return mockEvents;
             });
@@ -93,9 +91,7 @@ async function getEvent(id, db = mariadb) {
                 return row;
             })
             .catch(err => {
-                //handle query error
-                console.log(err);
-                if (conn && conn.destroy) { conn.destroy();  }
+                handleError(err, conn);
                 return mockEvents.events.find((obj => obj.id == id));
             });
     }
@@ -117,9 +113,7 @@ async function getComments(id, db = mariadb) {
                 return rows;
             })
             .catch(err => {
-                //handle query error
-                console.log(err);
-                if (conn && conn.destroy) { conn.destroy();  }
+                handleError(err, conn);
                 return mockEvents.events.find((obj => obj.id == id)).comments;
             });
     }
@@ -149,9 +143,8 @@ async function updateEvent(req, db = mariadb) {
                 return { result: "success" };;
             })
             .catch(err => {
-                console.log(err);
+                handleError(err, conn);
                 updateMock(ev);
-                if (conn && conn.destroy) { conn.destroy();  }
                 return { result: "error" };
             });
     }
@@ -191,8 +184,7 @@ async function addEvent(req, db = mariadb) {
                 return { id };
             })
             .catch(err => {
-                console.log(err);
-                if (conn && conn.destroy) { conn.destroy();  }
+                handleError(err, conn);
                 return addMockEvent(ev);
             });
     }
@@ -230,9 +222,8 @@ async function addComment(req, db = mariadb) {
                 return { id };
             })
             .catch(err => {
-                console.log(err);
+                handleError(err, conn);
                 addMockComment(comment);
-                if (conn && conn.destroy) { conn.destroy();  }
                 return comment.id;
             });
     }
@@ -260,8 +251,7 @@ async function deleteComment(event_id, id, db = mariadb) {
             return id;
         }
         catch(err) {
-            console.log(err);
-            if (conn && conn.destroy) { conn.destroy();  }
+            handleError(err, conn);
             return deleteMockComment(event_id, id);
         }
     }
@@ -291,8 +281,7 @@ async function deleteEvent(id, db = mariadb) {
             return id;
         }
         catch(err) {
-            console.log(err);
-            if (conn && conn.destroy) { conn.destroy();  }
+            handleError(err, conn);
             return deleteMock(id);
         }
     }
@@ -314,7 +303,7 @@ function deleteMock(id) {
 
 
 function cleanUpLike(err, conn, id, increment) {
-    console.log(err);
+    handleError(err, conn);
     const objIndex = mockEvents.events.findIndex((obj => obj.id == id));
     let likes = mockEvents.events[objIndex].likes;
     if (increment) {
@@ -325,7 +314,6 @@ function cleanUpLike(err, conn, id, increment) {
         mockEvents.events[objIndex].likes = --likes;
         console.log("added like to mock event with id ", id);
     }
-    if (conn && conn.destroy) { conn.destroy();  }
     return mockEvents.events[objIndex];
 }
 
@@ -374,6 +362,10 @@ async function removeLike(id) {
     return changeLikes(id, false);
 };
 
+function handleError(err, conn) {
+    console.log(err);
+    if (conn && conn.destroy) { conn.destroy();  }
+}
 
 const eventRepository = function () {
 
