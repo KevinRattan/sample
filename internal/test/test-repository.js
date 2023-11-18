@@ -106,7 +106,7 @@ describe('Testing Add Event with mock data', function () {
 
     it('should revert to mock data when no db present ', async function () {
         await repo.addEvent(request);
-        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
     });
 
 });
@@ -142,7 +142,7 @@ describe('Testing Update Event with mock data', function () {
 
     it('should revert to mock data when no db present ', async function () {
         await repo.updateEvent(request);
-        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
     });
 
 });
@@ -183,7 +183,7 @@ describe('Testing Un-Like Event', function () {
 
     it('should revert to mock data when no db present ', async function () {
         await repo.removeLike(1);
-        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(3), 'no connection - using mock data');
     });
 
 });
@@ -216,7 +216,7 @@ describe('Testing Like Event', function () {
 
     it('should revert to mock data when no db present ', async function () {
         await repo.addLike(2);
-        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(3), 'no connection - using mock data');
     });
 });
 
@@ -240,7 +240,7 @@ describe('Testing Delete Event with mock data', function () {
     it('should return id when event deleted and use mock db when no connection ', async function () {
         const data = await repo.deleteEvent(2);
         expect(data).to.equal(2);
-        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(2), 'no connection - using mock data');
     });
 
 
@@ -305,7 +305,7 @@ describe('Testing Add Comments with mock data', function () {
 
     it('should revert to mock data when no db present ', async function () {
         const data = await repo.addComment(request);
-        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(2), 'no connection - using mock data');
     });
 });
 
@@ -336,7 +336,7 @@ describe('Testing Delete Comments with mock data', function () {
         const data = await repo.deleteComment(1, 1);
 
             // Check if console.log was called with a specific message
-        sinon.assert.calledWith(spy.getCall(0), 'no connection - using mock data');
+        sinon.assert.calledWith(spy.getCall(1), 'no connection - using mock data');
 
 
     });

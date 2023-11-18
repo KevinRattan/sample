@@ -88,9 +88,25 @@ async function getEvent(id, db = mariadb) {
         return conn.query(sql, id)
             .then(rows => {
                 console.log("retrieved event with id", id);
-                const row = rows[0];
+                const ev = { 
+                    title: row[0].title,
+                    description: row[0].description,
+                    location: row[0].location,
+                    id: row[0].id,
+                    likes: row[0].likes,
+                    datetime_added: row[0].datetime_added,
+                    comments : []
+                }
+                rows.forEach((row) => {
+                    const comment = {
+                        id: row.id,
+                        event_id: row.event_id,
+                        comment: row.comment
+                    };
+                    ev.comments.push(comment);
+                });
                 conn.end();
-                return row;
+                return ev;
             })
             .catch(err => {
                 handleError(err, conn);
