@@ -370,7 +370,7 @@ describe('Testing Get Event with db ', function () {
     let fakeQuery, fakeCreateConnection, connectionStub, expectedQuery, expectedParams, id;
     beforeEach(function () {
         id = 1
-        expectedQuery = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comments FROM events e INNER JOIN comments c ON e.id = c.event_id WHERE id = ?;';
+        expectedQuery = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comment FROM events e INNER JOIN comments c ON e.id = c.event_id WHERE id = ?;';
         expectedParams = id;
         fakeQuery = sinon.fake.resolves(mockEvents);
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
