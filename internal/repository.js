@@ -89,12 +89,12 @@ async function getEvent(id, db = mariadb) {
             .then(rows => {
                 console.log("retrieved event with id", id);
                 const ev = { 
-                    title: row[0].title,
-                    description: row[0].description,
-                    location: row[0].location,
-                    id: row[0].id,
-                    likes: row[0].likes,
-                    datetime_added: row[0].datetime_added,
+                    title:rows[0].title,
+                    description:rows[0].description,
+                    location:rows[0].location,
+                    id:rows[0].id,
+                    likes:rows[0].likes,
+                    datetime_added:rows[0].datetime_added,
                     comments : []
                 }
                 rows.forEach((row) => {
