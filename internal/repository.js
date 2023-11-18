@@ -83,7 +83,7 @@ async function getEvents(db = mariadb) {
 async function getEvent(id, db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
-        const sql = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comment FROM events e INNER JOIN comments c ON e.id = c.event_id WHERE e.id = ?;';
+        const sql = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comment FROM events e LEFT OUTER JOIN comments c ON e.id = c.event_id WHERE e.id = ?;';
         console.log(sql);
         return conn.query(sql, id)
             .then(rows => {
@@ -98,12 +98,14 @@ async function getEvent(id, db = mariadb) {
                     comments : []
                 }
                 rows.forEach((row) => {
-                    const comment = {
-                        id: row.id,
-                        event_id: row.event_id,
-                        comment: row.comment
-                    };
-                    ev.comments.push(comment);
+                    if (row.comment) {
+                        const comment = {
+                            id: row.id,
+                            event_id: row.event_id,
+                            comment: row.comment
+                        };
+                        ev.comments.push(comment);
+                    }
                 });
                 conn.end();
                 return ev;
