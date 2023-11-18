@@ -298,13 +298,13 @@ describe('Testing Add Comments with mock data', function () {
 
     // create the asserts or expectations for the test
     it('should add comment to event ', async function () {
-        const data = await repo.addComment(request);
+        const data = await repo.addComment(request.body.event_id, request.body.comment);
         expect(data).to.be.a('number');
     });
 
 
     it('should revert to mock data when no db present ', async function () {
-        const data = await repo.addComment(request);
+        const data = await repo.addComment(request.body.event_id, request.body.comment);
         sinon.assert.calledWith(spy.getCall(2), 'no connection - using mock data');
     });
 });
@@ -576,18 +576,13 @@ describe('Testing Get Comments with Db', function () {
 
 // create a test for adding a comment for a given event using the database by checking the sql statement
 describe('Testing Add Comments with Db', function () {
-    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams;
+    let fakeQuery, fakeCreateConnection, connectionStub, request, expectedQuery, expectedParams, event_id, comment;
 
     beforeEach(function () {
-        request = {
-            body: {
-                event_id: 1,
-                comment: 'this is a comment',
-                id: 5
-            }
-        }
+        event_id = 1;
+        comment = 'this is a comment';
         expectedQuery = 'INSERT INTO comments (comment, event_id) VALUES (?,?) RETURNING id;';
-        expectedParams = [request.body.comment, request.body.event_id];
+        expectedParams = [comment, event_id];
 
         fakeQuery = sinon.fake.resolves(4);
         fakeCreateConnection = sinon.fake.resolves({ query: fakeQuery, end: sinon.fake() });
@@ -600,7 +595,7 @@ describe('Testing Add Comments with Db', function () {
     });
     // add teh asserts or expectations for the test
     it('should add comment to event ', async function () {
-        await repo.addComment(request, db);
+        await repo.addComment(event_id, comment, db);
         // console.log('fakeQuery was called with:', fakeQuery.getCall(0).args);
         sinon.assert.calledWith(fakeQuery, expectedQuery, expectedParams);
     });

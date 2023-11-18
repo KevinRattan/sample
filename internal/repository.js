@@ -225,18 +225,11 @@ function addMockEvent(ev) {
 }
 
 
-async function addComment(req, db = mariadb) {
-    const objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.event_id));
-    mockEvents.events[objIndex].comments = mockEvents.events[objIndex]?.comments ? mockEvents.events[objIndex].comments : [];
-    const comment = {
-        comment: req.body.comment,
-        event_id: req.body.event_id,
-        id: mockEvents.events[objIndex].comments.length + 1
-    }
+async function addComment(event_id, comment, db = mariadb) {
     const sql = 'INSERT INTO comments (comment, event_id) VALUES (?,?) RETURNING id;';
     console.log(sql);
-    const values = [comment.comment, comment.event_id];
-    console.log("adding comment to  event with id ", comment.event_id);
+    const values = [comment, event_id];
+    console.log("adding comment to  event with id ", event_id);
     const conn = await getConnection(db);
     if (conn) {
         conn.query(sql, values)
@@ -247,18 +240,25 @@ async function addComment(req, db = mariadb) {
             })
             .catch(err => {
                 handleError(err, conn);
-                addMockComment(comment);
+                addMockComment(event_id, comment);
                 return comment.id;
             });
     }
     else {
-       return addMockComment(comment);
+       return addMockComment(event_id, comment);
     }
 }
 
-function addMockComment(comment) {
-    const objIndex = mockEvents.events.findIndex((obj => obj.id == comment.event_id));
-    mockEvents.events[objIndex].comments.push(comment);
+function addMockComment(event_id, com) {
+    const objIndex = mockEvents.events.findIndex((obj => obj.id == event_id));
+    const mockEvent =  mockEvents.events[objIndex];
+    mockEvent.comments = mockEvent.comments ? mockEvent.comments : [];
+    const comment = {
+        comment: com,
+        event_id: event_id,
+        id:  mockEvent.comments.length + 1
+    }
+    mockEvent.comments.push(comment);
     console.log("mock comment added: ", comment);
     return comment.id;
 }

@@ -58,7 +58,7 @@ app.post('/event', (req, res) => {
 });
 
 app.post('/comment', (req, res) => {
-    db.addComment(req)
+    db.addComment(req.body.event_id, req.body.comment)
         .then((data) => {
             res.json(data);
         });
