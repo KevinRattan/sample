@@ -192,7 +192,7 @@ app.post('/event/update',
                        });
                }
                else { 
-                res.redirect(`/event/${req.body.event_id}`); // redirect to the event page on successful response
+                res.redirect(`/event/${req.body.id}`); // redirect to the event page on successful response
                }
            });
 
