@@ -82,7 +82,7 @@ async function getEvents(db = mariadb) {
 async function getEvent(id, db = mariadb) {
     const conn = await getConnection(db);
     if (conn) {
-        const sql = 'SELECT id, title, description, location, likes, datetime_added FROM events WHERE id = ?;';
+        const sql = 'SELECT e.id, e.title, e.description, e.location, e.likes, e.datetime_added, c.comments FROM events e INNER JOIN comments cON e.id = c.event_id WHERE id = ?;';
         return conn.query(sql, id)
             .then(rows => {
                 console.log("retrieved event with id", id);
