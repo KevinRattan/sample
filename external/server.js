@@ -361,9 +361,10 @@ app.get('/comment/delete/:event_id/:id',
         // using an environment variable. Here, the variable is passed 
         // to npm start inside package.json:
         //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
+        const eventId = req.params.event_id;
         request.delete(  // first argument: url + data + formats
             {
-                url: SERVER + `/comment/${req.params.event_id}/${req.params.id}`,  // the microservice end point for liking an event
+                url: SERVER + `/comment/${eventId}/${req.params.id}`,  // the microservice end point for liking an event
                 json: true // response from backend will be json format
             },
             // second argument: function with three args,
@@ -379,7 +380,7 @@ app.get('/comment/delete/:event_id/:id',
                        });
                }
                else {
-                   res.redirect(`/event/${req.params.event_id}`); // redirect to the event page on successful response
+                   res.redirect(`/event/${eventId}`); // redirect to the event page on successful response
                }
            });
 
