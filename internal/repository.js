@@ -227,7 +227,7 @@ function addMockEvent(ev) {
 
 async function addComment(req, db = mariadb) {
     const objIndex = mockEvents.events.findIndex((obj => obj.id == req.body.event_id));
-    mockEvents.events[objIndex].comments = mockEvents.events[objIndex].comments ? mockEvents.events[objIndex].comments : [];
+    mockEvents.events[objIndex].comments = mockEvents.events[objIndex]?.comments ? mockEvents.events[objIndex].comments : [];
     const comment = {
         comment: req.body.comment,
         event_id: req.body.event_id,
