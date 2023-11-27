@@ -89,7 +89,7 @@ app.put('/event', (req, res) => {
 });
 
 // put because this is an update. Passes through to shared method.
-app.put('/event/like', (req, res) => {
+app.put('/like/event', (req, res) => {
     db.addLike(req.body.id)
         .then((data) => {
             res.json(data);
@@ -98,7 +98,7 @@ app.put('/event/like', (req, res) => {
 
 // Passes through to shared method.
 // Delete distinguishes this route from put above
-app.delete('/event/like', (req, res) => {
+app.delete('/like/event', (req, res) => {
     db.removeLike(req.body.id)
         .then((data) => res.json(data));
 });

@@ -200,7 +200,7 @@ app.post('/event/update',
 
 
 // defines a route that receives the post request to /event/like to like the event
-app.post('/event/like',
+app.post('/like/event',
     urlencodedParser, // second argument - how to parse the uploaded content
     // into req.body
     (req, res) => {
@@ -212,7 +212,7 @@ app.post('/event/like',
         // changed to a put now that real data is being updated
         request.put(  // first argument: url + data + formats
             {
-                url: SERVER + '/event/like',  // the microservice end point for liking an event
+                url: SERVER + '/like/event',  // the microservice end point for liking an event
                 body: req.body,  // content of the form
                 headers: { // uploading json
                     "Content-Type": "application/json"
@@ -251,7 +251,7 @@ app.post('/event/unlike',
         //  "start": "BACKEND_URL=http://localhost:8082 node server.js",
         request.delete(  // first argument: url + data + formats
             {
-                url: SERVER + '/event/like',  // the microservice end point for liking an event
+                url: SERVER + '/like/event',  // the microservice end point for liking an event
                 body: req.body,  // content of the form
                 headers: { // uploading json
                     "Content-Type": "application/json"

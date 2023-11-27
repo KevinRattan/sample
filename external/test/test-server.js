@@ -27,7 +27,7 @@ describe('GET /', function () {
         if (err) {
           return done(err);
         }
-        chai.assert.isTrue(res.text.includes("<h1>[TEAM NAME'S] application</h1>"));
+        chai.assert.isTrue(res.text.includes("<h1>Capstone Project Application</h1>"));
         return done();
       });
 
@@ -404,7 +404,7 @@ describe('POST /event/like', function () {
     //specify the url to be intercepted
     nock("http://localhost:8082")
       //define the method to be intercepted
-      .put('/event/like')
+      .put('/like/event')
       //respond with a OK and the specified JSON response
       .reply(200, {
         "status": 200,
@@ -413,7 +413,7 @@ describe('POST /event/like', function () {
       });
 
       request(app)
-      .post('/event/like')
+      .post('/like/event')
       .expect(302)
       .end((err, res) => {
         if (err) {
@@ -436,7 +436,7 @@ describe('POST /event/like', function () {
       .replyWithError("Error");
 
     request(app)
-      .post('/event/like')
+      .post('/like/event')
       .expect('Content-Type', /html/)
       .expect(200)
       .end((err, res) => {
@@ -457,7 +457,7 @@ describe('POST /event/unlike', function () {
     //specify the url to be intercepted
     nock("http://localhost:8082")
       //define the method to be intercepted
-      .delete('/event/like')
+      .delete('/like/event')
       //respond with a OK and the specified JSON response
       .reply(200, {
         "status": 200,
@@ -486,7 +486,7 @@ describe('POST /event/unlike', function () {
     //specify the url to be intercepted
     nock("http://localhost:8082")
       //define the method to be intercepted
-      .delete('/event/like')
+      .delete('/like/event')
       //respond with an error
       .replyWithError("Error");
 

@@ -138,7 +138,7 @@ describe('PUT /event', function () {
   });
 });
 
-describe('DELETE /event/like', function () {
+describe('DELETE /like/event', function () {
   let dbStub;
   beforeEach(function() {
     dbStub = sinon.stub(db, "removeLike");
@@ -149,7 +149,7 @@ describe('DELETE /event/like', function () {
   it('un-likes an event', function (done) {
     dbStub.returns(Promise.resolve({ events: []}));
     request(app)
-      .delete('/event/like')
+      .delete('/like/event')
       .send({ id: 2 })
       .set('Accept', 'application/json')
       .expect(200)
@@ -162,7 +162,7 @@ describe('DELETE /event/like', function () {
   });
 });
 
-describe('PUT /event/like', function () {
+describe('PUT /like/event', function () {
   let dbStub;
   beforeEach(function() {
     dbStub = sinon.stub(db, "addLike");
@@ -173,7 +173,7 @@ describe('PUT /event/like', function () {
   it('likes an event', function (done) {
     dbStub.returns(Promise.resolve({ events: []}));
     request(app)
-      .put('/event/like')
+      .put('/like/event')
       .send({ id: 2 })
       .set('Accept', 'application/json')
       .expect(200)

@@ -10,7 +10,7 @@
       <p class="card-text">{{ description }}</p>
       <p class="card-text">Location: {{ location }}</p>
       <p class="card-text">Likes: {{ likes }}
-      <form method="POST" action="/event/like" style="display:inline">
+      <form method="POST" action="/like/event" style="display:inline">
         <input type="hidden" value="{{id}}" name="id">
         <button type="submit" class="btn btn-success">
           <span class="bi bi-hand-thumbs-up"></span>
