@@ -296,7 +296,7 @@ function deleteMockComment(event_id, id) {
 async function deleteEvent(id, db = mariadb) {
     const sql = 'DELETE FROM events WHERE id = ?;';
     console.log(sql);
-    const sql2 = 'DELETE FROM comments;'
+    const sql2 = 'DELETE FROM comments where event_id = ?;';
     console.log(sql2);
     const conn = await getConnection(db);
     if (conn) {
