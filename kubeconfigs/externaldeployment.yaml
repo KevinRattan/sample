@@ -6,11 +6,13 @@ spec:
   selector:
     matchLabels:
       app: demo-ui
+      env: dev
   replicas: 1 # tells deployment to run 1 pod matching the template
   template:
     metadata:
       labels:
         app: demo-ui
+        ebv: dev
     spec:
       containers:
       - name: demo-ui
