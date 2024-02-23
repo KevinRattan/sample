@@ -1,7 +1,7 @@
 apiVersion: apps/v1 
 kind: Deployment
 metadata:
-  name: demo-ui
+  name: events-ui
 spec: 
   selector:
     matchLabels:
@@ -15,7 +15,7 @@ spec:
         env: dev
     spec:
       containers:
-      - name: demo-ui
+      - name: events-ui
         image: your-docker-hub-id/external:v1.0
         env: 
         - name: SERVER
