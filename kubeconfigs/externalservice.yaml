@@ -10,4 +10,5 @@ spec:
     protocol: TCP
   selector:
     app: demo-ui
+    env: dev
   type: LoadBalancer
