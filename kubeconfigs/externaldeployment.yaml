@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: demo-ui
-        ebv: dev
+        env: dev
     spec:
       containers:
       - name: demo-ui
