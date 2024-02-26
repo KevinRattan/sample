@@ -15,9 +15,6 @@ spec:
       containers:
       - name: events-api
         image: your-docker-hub-id/internal:v1.0
-        env: 
-        - name: SERVICE_PORT
-          value: "8082"
         ports:
         - containerPort: 8082
             
